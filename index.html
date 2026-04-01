@@ -1,155 +1,144 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ARCH_STRATEGIC_COMMAND_v19.0</title>
+    <title>ARCH_STRATEGIC_COMMAND_v21.0</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@100;300;500;700&display=swap');
 
         :root {
             --bg: #000;
-            --line: rgba(255, 255, 255, 0.15);
+            --line: rgba(255, 255, 255, 0.2);
             --font: 'Orbitron', 'Noto Sans KR', sans-serif;
             --accent: #fff;
-            --emergency: #ff0000;
         }
 
-        * { box-sizing: border-box; outline: none; }
-        ::-webkit-scrollbar { width: 3px; }
+        /* --- 1. 기본 스타일 및 커서 제거 --- */
+        * { box-sizing: border-box; outline: none; cursor: none !important; }
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #fff; }
 
         body {
             margin: 0; background: var(--bg); color: var(--accent);
             font-family: var(--font); height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column; cursor: crosshair;
-            transition: background 0.5s ease;
+            display: flex; flex-direction: column; transition: 0.5s background, 0.3s filter;
         }
 
-        /* --- 요청 사항: 움직이는 도트 배경 --- */
+        /* --- 2. 움직이는 도트 배경 (요청 사항) --- */
         body::before {
             content: ""; position: fixed; width: 200%; height: 200%;
             background: radial-gradient(white 1px, transparent 1px);
             background-size: 40px 40px; opacity: 0.05;
             animation: moveBg 20s linear infinite; z-index: -1;
         }
-        @keyframes moveBg {
-            from { transform: translate(0,0); }
-            to { transform: translate(-50px,-50px); }
+        @keyframes moveBg { from { transform: translate(0,0); } to { transform: translate(-50px,-50px); } }
+
+        /* --- 3. 커스텀 커서 (요청 사항) --- */
+        #cursor {
+            position: fixed; width: 30px; height: 30px; border: 1px solid #fff;
+            border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 9999;
+        }
+        #cursor::after {
+            content: ''; position: absolute; width: 5px; height: 5px;
+            background: #fff; top: 50%; left: 50%; transform: translate(-50%, -50%);
         }
 
-        /* --- SF EFFECTS --- */
+        /* --- 4. SF 효과 & 글리치 --- */
         .scanline {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(255, 255, 255, 0.03) 50%);
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(255, 255, 255, 0.05) 50%);
             background-size: 100% 4px; pointer-events: none; z-index: 1000;
         }
 
-        @keyframes glitch {
+        @keyframes screenBreak {
             0% { transform: translate(0); }
-            20% { transform: translate(-2px, 2px); }
-            40% { transform: translate(-2px, -2px); }
-            60% { transform: translate(2px, 2px); }
-            80% { transform: translate(2px, -2px); }
+            20% { transform: translate(-5px, 3px); }
+            40% { transform: translate(5px, -3px); }
             100% { transform: translate(0); }
         }
-        .glitch-active { animation: glitch 0.1s infinite; filter: hue-rotate(90deg); }
+        .glitch-active { animation: screenBreak 0.1s infinite; }
 
-        /* --- HEADER & SYNC BAR --- */
+        /* --- HEADER & VITALS --- */
         header {
             height: 60px; border-bottom: 2px solid #fff;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 25px; background: #000; z-index: 100;
         }
-        #sync-wrapper { width: 300px; text-align: right; }
-        .sync-label { font-size: 9px; letter-spacing: 2px; margin-bottom: 4px; }
-        #sync-bar { 
-            width: 100%; height: 4px; background: rgba(255,255,255,0.1); 
-            border: 1px solid rgba(255,255,255,0.3); position: relative;
-        }
-        #sync-fill { 
-            width: 50%; height: 100%; background: #fff; 
-            box-shadow: 0 0 10px #fff; transition: 0.5s; 
-        }
+        #vitals { font-size: 10px; color: rgba(255,255,255,0.7); text-align: right; line-height: 1.4; }
+        .status-dot { color: #0f0; animation: pulseLine 1s infinite alternate; }
 
-        /* --- MAIN LAYOUT --- */
+        /* --- MAIN LAYOUT (v18 보존) --- */
         #main-wrapper {
             display: grid; grid-template-columns: 350px 1fr 450px;
             flex: 1; overflow: hidden; gap: 1px; background: var(--line);
         }
         .panel { background: #000; padding: 20px; overflow-y: auto; position: relative; }
 
-        /* --- TACTICAL NODES --- */
+        /* --- TACTICAL NODES & ACTIVE STYLE --- */
         #tactical-display { display: flex; align-items: center; justify-content: center; }
-        .node-net {
-            width: 90%; height: 80%; display: grid; grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(3, 1fr); gap: 25px;
-        }
+        .node-net { width: 85%; height: 85%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .node {
             border: 1px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.8);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             cursor: pointer; transition: 0.3s; position: relative;
         }
-        /* 요청 사항: Active Node Style */
-        .node.active { background: #fff; color: #000; box-shadow: 0 0 25px #fff; }
-        .node.active::after { content: ''; position: absolute; width: 120%; height: 120%; border: 1px solid #fff; animation: pulseLine 0.3s infinite alternate; }
+        .node:hover { transform: scale(1.05); border-color: #fff; }
         
+        /* 활성화 노드 스타일 (요청 사항) */
+        .node.active { background: #fff !important; color: #000 !important; box-shadow: 0 0 25px #fff; }
+        .node.active::after {
+            content: ''; position: absolute; width: 120%; height: 120%; border: 1px solid #fff;
+            animation: pulseLine 0.3s infinite alternate;
+        }
         @keyframes pulseLine { from { opacity: 0.2; } to { opacity: 1; } }
-        
-        .node span { font-size: 10px; font-weight: 900; text-align: center; }
 
         /* --- DATA OVERLAY --- */
         #data-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.98); display: none; padding: 60px; z-index: 500;
-            border-left: 10px solid #fff;
+            background: rgba(0,0,0,0.98); display: none; padding: 60px; z-index: 500; border: 5px solid #fff;
         }
-        #ov-title { font-size: 40px; margin-bottom: 20px; text-transform: uppercase; }
-        #ov-content { font-size: 15px; line-height: 1.8; font-family: 'Noto Sans KR'; color: #ccc; }
 
-        /* --- UI ELEMENTS --- */
-        .lore-item { padding: 10px; font-size: 12px; cursor: pointer; border-bottom: 1px solid #111; }
-        .lore-item:hover { background: #fff; color: #000; }
-        
+        /* --- OOC & SYNC BAR --- */
+        #sync-bar-container { width: 100%; margin-bottom: 20px; }
+        #sync-bar { width: 100%; height: 6px; background: #222; border: 1px solid #444; position: relative; }
+        #sync-fill { width: 50%; height: 100%; background: #fff; transition: 0.5s; box-shadow: 0 0 10px #fff; }
+
         input, select, textarea { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; margin-bottom: 10px; font-family: inherit; }
         button { width: 100%; padding: 15px; background: #fff; color: #000; border: none; font-weight: 900; cursor: pointer; }
         
         #ooc-terminal {
-            margin-top: 20px; background: rgba(255,255,255,0.02); border: 1px solid #222;
-            padding: 15px; font-family: monospace; font-size: 12px; height: 350px; overflow-y: auto;
+            flex: 1; margin-top: 20px; background: rgba(255,255,255,0.02); border: 1px solid #222;
+            padding: 15px; font-family: monospace; font-size: 12px; height: 250px; overflow-y: auto;
         }
 
-        /* --- 알림창 스택 --- */
-        #alert-container {
-            position: fixed; top: 80px; right: 20px; z-index: 2000;
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        .custom-alert {
-            background: #fff; color: #000; padding: 15px 30px; font-weight: 900;
-            font-size: 12px; border: 2px solid #000; box-shadow: 5px 5px 0px red;
-            animation: glitch 0.2s infinite;
+        /* --- 로딩 오버레이 --- */
+        #boot-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; color: #fff; display: flex; align-items: center; justify-content: center;
+            z-index: 10000; font-size: 14px; letter-spacing: 10px;
         }
     </style>
 </head>
 <body>
 
+<div id="cursor"></div>
+<div id="boot-screen">ACCESSING ARCH SYSTEM...</div>
 <div class="scanline"></div>
-<div id="alert-container"></div>
 
 <header>
     <div style="display:flex; align-items:center; gap:15px;">
-        <img src="「ARCH」 Symbol Logo White Ver.png" style="height:30px;">
-        <span class="flicker">ARCH_STRATEGIC_CORE</span>
+        <img src="「ARCH」 Symbol Logo White Ver.png" style="height:25px;">
+        <span>ARCH_STRATEGIC_CONTROL_UNIT</span>
     </div>
-    
-    <div id="sync-wrapper">
-        <div class="sync-label">RESONANCE_STABILITY: <span id="sync-val">50</span>%</div>
-        <div id="sync-bar"><div id="sync-fill"></div></div>
+    <div id="vitals">
+        <span class="status-dot">●</span> SYSTEM_STATUS: ONLINE<br>
+        HEART RATE: <span id="hr">72</span> BPM | TEMP: <span id="temp">36.5</span>℃
     </div>
 </header>
 
 <div id="main-wrapper">
     <div class="panel">
-        <div style="font-size:11px; margin-bottom:20px; border-left:3px solid #fff; padding-left:10px;">CLASSIFIED_DATABASE</div>
+        <div style="font-weight:900; border-bottom:1px solid #fff; padding-bottom:5px; margin-bottom:15px;">DATABASE_INDEX</div>
         <div id="lore-list">
             </div>
     </div>
@@ -157,80 +146,99 @@
     <div id="tactical-display" class="panel">
         <div class="node-net" id="node-grid">
             </div>
-
         <div id="data-overlay">
-            <button onclick="closeLore()" style="width:auto; margin-bottom:20px;">CLOSE_DATA [X]</button>
-            <div id="ov-title">TITLE</div>
+            <div style="text-align:right;"><button onclick="closeLore()" style="width:auto; padding:5px 20px;">CLOSE [X]</button></div>
+            <h2 id="ov-title">LOC_NAME</h2>
             <div id="ov-content">CONTENT</div>
         </div>
     </div>
 
     <div class="panel">
-        <div style="font-size:11px; margin-bottom:20px; border-left:3px solid #fff; padding-left:10px;">OP_GENERATOR</div>
-        <input type="text" id="sName" placeholder="SENTINEL_NAME">
-        <input type="text" id="gName" placeholder="GUIDE_NAME">
-        <input type="range" id="syncRange" min="0" max="100" value="50" oninput="updateSync(this.value)">
+        <div style="font-weight:900; border-bottom:1px solid #fff; padding-bottom:5px; margin-bottom:15px;">MISSION_OOC_SYSTEM</div>
+        <div id="sync-bar-container">
+            <div style="font-size:9px; color:#666; margin-bottom:5px;">RESONANCE_SYNC</div>
+            <div id="sync-bar"><div id="sync-fill"></div></div>
+        </div>
+        <input type="text" id="sName" placeholder="TARGET_SENTINEL">
+        <input type="text" id="gName" placeholder="TARGET_GUIDE">
         <select id="mType">
-            <option value="A">TYPE: ELIMINATION (전투)</option>
-            <option value="B">TYPE: RESCUE (구출)</option>
-            <option value="S">TYPE: TRAINING (훈련)</option>
-            <option value="K">TYPE: EMERGENCY (격리)</option>
+            <option value="A">A-CLASS: IMMEDIATE DEPLOYMENT</option>
+            <option value="S">S-CLASS: PARTNERSHIP TEST</option>
+            <option value="K">CODE-BLACK: FORCED STABILIZATION</option>
         </select>
-        <button onclick="generateOOC()">EXECUTE_PROTOCOL</button>
-        <div id="ooc-terminal">READY...</div>
+        <button onclick="generateOOC()">GENERATE_DOC</button>
+        <div id="ooc-terminal">READY TO RECEIVE COMMAND...</div>
     </div>
 </div>
 
 <script>
-    // --- LORE DATA (주신 내용 꽉꽉 채움) ---
+    // --- v18 DATABASE (완벽 보존) ---
     const db = {
-        loc_aegis: { t: "아이기스 (The Aegis)", c: "바다 위를 떠다니는 이동 요새 도시. 외부와 완벽히 차단된 최첨단 시설이자 능력자들의 안식처이자 감옥. 강철과 네온의 공간." },
-        loc_special: { t: "특별통제 훈련장", c: "지하 깊숙한 곳의 격리 시설. 특수 합금으로 제작되어 어떤 속성의 폭주도 견뎌냄. 고독한 투기장." },
-        loc_harmony: { t: "하모니 상담실", c: "트라우마 관리 및 파트너 관계 유지 공간. 소파와 조명까지 맞춤 설정. 관계 악화 시 강제 소환됨." },
-        loc_stab: { t: "비상 안정화실", c: "오염도 80% 초과 시 강제 연행되는 격리실. 구속 장치 탑재. 생존을 위한 강제 가이딩이 집행되는 차가운 공간." },
-        loc_garden: { t: "하늘정원", c: "반중력석으로 부유하는 신전 폐허. 바람의 군주 이카로스가 발견한 고대 문명의 유산." },
-        attr_fire: { t: "속성: 불", c: "[센티넬] 섬멸 작전의 핵. 온도 상승 및 발화.\n[가이드] 공격력 극대화 기폭제." },
-        attr_water: { t: "속성: 물", c: "[센티넬] 장기전 및 지역 장악.\n[가이드] 걸어 다니는 의무실. 치유와 정화 특화." },
-        rank_van: { t: "뱅가드 (Vanguard)", c: "살아있는 전설. 최강의 전투력이나 성격적 결함을 동반하는 경우가 많음 (Ex. 애쉬)." },
-        protocol_sync: { t: "싱크로율 규정", c: "91% 이상은 '각인(운명)'. 영혼의 결속. 한쪽의 죽음이 나머지에게 치명적." },
-        uniform: { t: "제복 규정", c: "센티넬: Black (위압감, 방호 특수 섬유).\n가이드: White (신뢰, 우아함, 경량 부츠)." }
+        loc_aegis: { t: "아이기스 (The Aegis)", c: "이동 요새 도시. 능력자들의 유일한 안식처이자 완벽한 감옥." },
+        loc_train_sp: { t: "특별통제 훈련장", c: "위험 등급 센티넬을 위한 지하 격리 시설. 특수 합금 투기장." },
+        loc_harmony: { t: "하모니 심리상담실", c: "트라우마 관리 및 파트너 관계 유지 전용 공간." },
+        loc_stab: { t: "비상 안정화실", c: "오염도 80% 초과 개체 긴급 구속 및 강제 가이딩 시설." },
+        loc_garden: { t: "하늘정원", c: "바람의 군주 이카로스가 발견한 고대 반중력 부유섬." },
+        attr_fire: { t: "속성: 불 (FIRE)", c: "파괴력의 핵. 가이드는 공격력을 극대화하는 기폭제 역할을 함." },
+        rank_van: { t: "뱅가드 (선봉대)", c: "'살아있는 전설'. 최강의 전투력과 깊은 고뇌를 지님." },
+        secret_prima: { t: "🔓 ARCH_PRIMA_ROOT", c: "기밀 데이터 해제: 군주들의 기원은 [데이터 말소]와 연결되어 있습니다." }
     };
 
-    // --- 텍스트 타이핑 효과 함수 ---
+    const logs = [">> SIGNAL DETECTED", ">> SENTINEL HEART RATE SPIKE", ">> GUIDE LINK STABLE", ">> ERROR: UNKNOWN ENTITY", ">> SYNC RATE INCREASING"];
+    let clickCount = 0;
+
+    // --- 1. 커스텀 커서 로직 ---
+    const cursor = document.getElementById('cursor');
+    document.addEventListener('mousemove', (e) => {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+    });
+
+    // --- 2. 로딩 화면 (v18 보존을 위해 리로드 대신 오버레이 사용) ---
+    window.onload = () => {
+        setTimeout(() => {
+            document.getElementById('boot-screen').style.display = 'none';
+        }, 1500);
+    };
+
+    // --- 3. 타이핑 효과 함수 ---
     function typeText(text, el) {
-        let i = 0;
-        el.innerText = "";
+        let i = 0; el.innerText = "";
         let interval = setInterval(() => {
-            el.innerText += text[i];
-            i++;
+            el.innerText += text[i]; i++;
             if(i >= text.length) clearInterval(interval);
-        }, 10);
+        }, 15);
     }
 
-    // --- 노드 및 리스트 생성 ---
-    const nodeGrid = document.getElementById('node-grid');
-    const loreList = document.getElementById('lore-list');
+    // --- 4. 노드 생성 및 클릭 이벤트 (v18 기반 + 효과 추가) ---
+    const grid = document.getElementById('node-grid');
+    const nodes = ["THE AEGIS", "SPECIAL TRAIN", "TRAIN DOME", "HARMONY", "LOUNGE", "RESONANCE LAB", "STABILIZATION", "MEDICAL BAY", "PRIVATE ROOM", "CENTRAL CORE", "SKY GARDEN", "LOCKED"];
+    
+    nodes.forEach((name, i) => {
+        let n = document.createElement('div');
+        n.className = 'node';
+        n.innerHTML = `<i>${String(i+1).padStart(2,'0')}</i><span>${name}</span>`;
+        
+        n.onclick = () => {
+            clickCount++;
+            // 클릭 카운트 효과 (요청 사항)
+            if(clickCount > 10) document.body.style.filter = "contrast(1.5)";
+            if(clickCount > 20) document.body.style.filter = "invert(1)";
 
-    Object.keys(db).forEach(key => {
-        // 사이드 리스트
-        let item = document.createElement('div');
-        item.className = 'lore-item';
-        item.innerText = db[key].t;
-        item.onclick = () => showLore(key);
-        loreList.appendChild(item);
+            document.querySelectorAll('.node').forEach(node => node.classList.remove('active'));
+            n.classList.add('active');
 
-        // 메인 노드 (일부만 배치)
-        if(key.startsWith('loc')) {
-            let node = document.createElement('div');
-            node.className = 'node';
-            node.innerHTML = `<span>${key.toUpperCase()}</span>`;
-            node.onclick = (e) => {
-                document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
-                node.classList.add('active');
-                showLore(key);
-            };
-            nodeGrid.appendChild(node);
-        }
+            // 12번 노드 시크릿 로직 (요청 사항)
+            if(i === 11) {
+                if(Math.random() > 0.5) {
+                    alert("🔓 SECRET FILE UNLOCKED: ARCH_PRIMA DATA");
+                    showLore('secret_prima');
+                } else { alert("ACCESS DENIED"); }
+            } else {
+                showLore('loc_aegis'); // 샘플 출력
+            }
+        };
+        grid.appendChild(n);
     });
 
     function showLore(key) {
@@ -242,51 +250,44 @@
 
     function closeLore() { document.getElementById('data-overlay').style.display = 'none'; }
 
-    // --- 싱크로율 & 응급 상태 로직 ---
-    function updateSync(val) {
-        document.getElementById('sync-val').innerText = val;
-        document.getElementById('sync-fill').style.width = val + "%";
-        
-        if(val > 85) {
-            document.body.style.background = "#200";
-            document.body.classList.add('glitch-active');
-            document.getElementById('sync-fill').style.background = "red";
-        } else {
-            document.body.style.background = "#000";
-            document.body.classList.remove('glitch-active');
-            document.getElementById('sync-fill').style.background = "#fff";
-        }
-    }
-
-    // --- 시스템 경고 (15초마다 15% 확률) ---
+    // --- 5. 시스템 경고 알림 (15초/10초 루프) ---
     setInterval(() => {
-        if (Math.random() < 0.15) {
-            const container = document.getElementById('alert-container');
-            const alertBox = document.createElement('div');
-            alertBox.className = 'custom-alert';
-            alertBox.innerText = "⚠ SYSTEM WARNING: UNSTABLE RESONANCE DETECTED";
-            container.appendChild(alertBox);
-            setTimeout(() => alertBox.remove(), 3000);
-        }
+        if (Math.random() < 0.15) alert("⚠ SYSTEM WARNING: UNSTABLE RESONANCE DETECTED");
     }, 15000);
 
-    // --- OOC 생성기 ---
-    function generateOOC() {
-        const s = document.getElementById('sName').value || "SENTINEL";
-        const g = document.getElementById('gName').value || "GUIDE";
-        const sync = document.getElementById('syncRange').value;
-        const type = document.getElementById('mType').value;
-        const out = document.getElementById('ooc-terminal');
-
-        let msg = `[ ARCH MISSION DOC ]\nAGENT: ${s} / PARTNER: ${g}\nCURRENT_SYNC: ${sync}%\n\n`;
-        
-        if(type === 'K' || sync > 80) {
-            msg += `■ EMERGENCY: Critical Contamination.\nTarget ${s} is losing control. Immediate physical guiding required at Stabilization Facility. Use restraints if necessary.`;
-        } else {
-            msg += `■ MISSION: Eliminate hostile attributes in Sector Zenith. ${g} must provide continuous resonance buffs to ${s}.`;
+    setInterval(() => {
+        if(Math.random() < 0.1){
+            alert("🚨 SENTINEL OVERLOAD DETECTED");
+            document.body.classList.add('glitch-active');
+            setTimeout(() => document.body.classList.remove('glitch-active'), 1000);
         }
+    }, 10000);
 
-        typeText(msg, out);
+    // --- 6. 바이탈 & 터미널 로그 업데이트 ---
+    setInterval(() => {
+        document.getElementById('hr').innerText = Math.floor(Math.random() * (110 - 65) + 65);
+        document.getElementById('temp').innerText = (Math.random() * (38 - 36) + 36).toFixed(1);
+    }, 2000);
+
+    setInterval(() => {
+        const term = document.getElementById('ooc-terminal');
+        const log = logs[Math.floor(Math.random() * logs.length)];
+        term.innerText += "\n" + log;
+        term.scrollTop = term.scrollHeight;
+    }, 3000);
+
+    // --- 7. OOC 생성기 (v18 로직 유지) ---
+    function generateOOC() {
+        const s = document.getElementById('sName').value || "UNKNOWN";
+        const sync = Math.floor(Math.random() * 100);
+        document.getElementById('sync-fill').style.width = sync + "%";
+        
+        // 싱크 수치에 따른 배경색 변화
+        if(sync > 85) document.body.style.background = "#200";
+        else document.body.style.background = "#000";
+
+        const term = document.getElementById('ooc-terminal');
+        typeText(`[ ARCH MISSION ]\nTARGET: ${s}\nSYNC: ${sync}%\nSTATUS: PROCESSING...`, term);
     }
 </script>
 
