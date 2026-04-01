@@ -2,385 +2,421 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ARCH_STRATEGIC_OPS_CONTROL_v16.0</title>
+    <title>ARCH_STRATEGIC_OPS_CONTROL_v17.0</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@100;300;500;700&display=swap');
 
         :root {
-            --neon-blue: #00f2ff; /* 파티클/글리치용 포인트 컬러 */
             --bg-dark: #000000;
             --panel-bg: rgba(5, 5, 5, 0.98);
             --font-main: 'Orbitron', 'Noto Sans KR', sans-serif;
-            --line-color: rgba(255, 255, 255, 0.1);
+            --line-color: rgba(255, 255, 255, 0.15);
+            --accent-white: #ffffff;
         }
 
-        /* --- 전체 레이아웃 및 애니메이션 시스템 --- */
         * { box-sizing: border-box; outline: none; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); }
+
         body {
-            margin: 0; background: var(--bg-dark); color: #fff;
+            margin: 0; background: var(--bg-dark); color: var(--accent-white);
             font-family: var(--font-main); height: 100vh; overflow: hidden;
             display: flex; flex-direction: column;
-            cursor: crosshair;
+            cursor: crosshair; user-select: none;
         }
 
-        /* 글리치 애니메이션 정의 */
-        @keyframes screenGlitch {
-            0% { transform: translate(0); filter: hue-rotate(0); }
-            20% { transform: translate(-10px, 5px); filter: brightness(3) contrast(1.5); }
-            40% { transform: translate(10px, -5px); filter: invert(1); }
-            60% { transform: translate(-5px, 3px); filter: hue-rotate(180deg); }
-            100% { transform: translate(0); filter: none; }
+        /* --- 글리치 & 애니메이션 --- */
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
         }
-        .glitch-screen { animation: screenGlitch 0.5s; }
-
-        @keyframes mapPulse {
-            0% { filter: brightness(1); }
-            50% { filter: brightness(2) contrast(1.2); }
-            100% { filter: brightness(1); }
+        .scanline-effect {
+            position: fixed; top: 0; left: 0; width: 100%; height: 20vh;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.02), transparent);
+            animation: scanline 4s linear infinite; pointer-events: none; z-index: 999;
         }
-        .map-pulse { animation: mapPulse 0.7s; }
 
-        @keyframes blink { 50% { opacity:0; } }
-        .cursor { display:inline-block; width:10px; background:#fff; animation: blink 1s infinite; }
-
-        /* 페이드 블랙 전환 효과 */
-        .fade-black {
-            position:fixed; width:100%; height:100%; background:black;
-            top:0; left:0; opacity:0; pointer-events:none; transition:0.3s; z-index:9999;
+        @keyframes textFlicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+            80% { opacity: 0.3; }
         }
+        .flicker { animation: textFlicker 3s infinite; }
 
         /* --- 상단 헤더 --- */
         header {
-            height: 70px; border-bottom: 2px solid #fff;
+            height: 60px; border-bottom: 1px solid var(--accent-white);
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 30px; background: #000; z-index: 100;
         }
-        .logo-area { display: flex; align-items: center; gap: 15px; font-weight: 900; letter-spacing: 5px; font-size: 20px; }
-        .header-logo { height: 35px; }
+        .logo-area { display: flex; align-items: center; gap: 15px; font-weight: 900; letter-spacing: 5px; font-size: 18px; }
+        .header-logo { height: 30px; }
 
-        /* --- 메인 컨테이너 레이아웃 --- */
+        /* --- 메인 레이아웃 (3단) --- */
         #main-container {
-            display: grid; grid-template-columns: 400px 1fr 400px;
-            flex: 1; gap: 1px; background: var(--line-color);
+            display: grid; grid-template-columns: 350px 1fr 450px;
+            flex: 1; gap: 1px; background: var(--line-color); overflow: hidden;
         }
 
         .side-panel {
-            background: var(--panel-bg); display: flex; flex-direction: column; padding: 25px;
-            overflow-y: auto; position: relative; border: 1px solid var(--line-color);
+            background: var(--panel-bg); display: flex; flex-direction: column; padding: 20px;
+            overflow-y: auto; position: relative;
         }
 
-        .ui-section { margin-bottom: 25px; border: 1px solid var(--line-color); padding: 15px; background: rgba(255,255,255,0.02); }
-        .ui-label {
-            font-size: 11px; letter-spacing: 2px; color: #fff;
-            margin-bottom: 10px; display: flex; justify-content: space-between;
-            border-bottom: 1px solid #fff; padding-bottom: 5px;
+        .ui-section { 
+            margin-bottom: 20px; border: 1px solid var(--line-color); 
+            padding: 15px; background: rgba(255,255,255,0.02); 
         }
-        .ui-guide { font-size: 10px; color: rgba(255,255,255,0.4); margin-bottom: 10px; line-height: 1.4; }
+        .ui-label {
+            font-size: 12px; font-weight: 700; letter-spacing: 2px; color: var(--accent-white);
+            margin-bottom: 15px; display: flex; justify-content: space-between;
+            border-bottom: 1px solid var(--accent-white); padding-bottom: 5px;
+        }
 
         /* --- 아카이브 리스트 --- */
+        .archive-category {
+            font-size: 10px; color: rgba(255,255,255,0.4); margin: 15px 0 5px 0; letter-spacing: 1px; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 2px;
+        }
         .archive-item {
-            padding: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px;
-            font-size: 12px; cursor: pointer; transition: 0.2s; color: rgba(255,255,255,0.6);
+            padding: 8px 10px; border: 1px solid transparent; margin-bottom: 2px;
+            font-size: 12px; cursor: pointer; transition: 0.2s; color: rgba(255,255,255,0.7);
         }
-        .archive-item:hover { background: #fff; color: #000; font-weight: 700; border-left: 5px solid #fff; }
+        .archive-item:hover { background: rgba(255,255,255,0.1); color: #fff; font-weight: 700; border-left: 3px solid #fff; }
+        .archive-item.active { background: #fff; color: #000; font-weight: 900; }
 
-        /* --- 중앙 전술 지도 --- */
-        #map-viewport {
-            position: relative; overflow: hidden; background: #000;
-            cursor: grab;
-        }
-        #map-canvas {
-            width: 4000px; height: 3000px; position: absolute;
+        /* --- 중앙 디스플레이 (로어 뷰어) --- */
+        #center-display {
+            background: #000; position: relative; padding: 40px; overflow-y: auto;
             background-image: 
-                radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 100px 100px, 25px 25px, 25px 25px;
-            transform-origin: center;
+                radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
         }
-
-        .point {
-            position: absolute; width: 18px; height: 18px; background: #fff;
-            border-radius: 2px; transform: rotate(45deg);
-            box-shadow: 0 0 15px #fff; cursor: pointer; z-index: 10; transition: 0.5s ease-in-out;
+        #viewer-title {
+            font-size: 32px; font-weight: 900; margin-bottom: 20px; color: #fff; 
+            border-left: 8px solid #fff; padding-left: 15px; text-transform: uppercase;
         }
-        .point:hover { background: #fff; box-shadow: 0 0 25px #fff; transform: rotate(45deg) scale(1.3); }
-        .point-label {
-            position: absolute; top: 25px; left: 50%; transform: translateX(-50%) rotate(-45deg);
-            font-size: 10px; font-weight: 700; white-space: nowrap; color: #fff; letter-spacing: 1px;
-            background: rgba(0,0,0,0.7); padding: 2px 5px;
+        #viewer-content {
+            font-size: 14px; line-height: 1.8; color: rgba(255,255,255,0.85);
+            font-family: 'Noto Sans KR'; white-space: pre-wrap;
         }
-
-        /* 데이터 팝업 */
-        #data-popup {
-            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
-            width: 700px; background: rgba(0, 0, 0, 0.98); border: 2px solid #fff;
-            padding: 30px; display: none; z-index: 1000;
-            clip-path: polygon(0 20px, 20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+        .bg-logo {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 500px; opacity: 0.03; pointer-events: none;
         }
 
         /* --- 입력 요소 및 OOC 출력 --- */
-        input, select, textarea, button {
-            width: 100%; background: #000; border: 1px solid rgba(255,255,255,0.2);
-            color: #fff; padding: 10px; font-size: 13px; margin-bottom: 10px; font-family: inherit;
+        input, select, button {
+            width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.3);
+            color: #fff; padding: 12px; font-size: 13px; margin-bottom: 10px; font-family: inherit;
         }
-        button { font-weight: 900; cursor: pointer; background: #fff; color: #000; border: none; letter-spacing: 2px; }
-        button:hover { background: #ccc; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
+        input:focus, select:focus { border-color: #fff; background: rgba(255,255,255,0.05); }
+        select option { background: #000; color: #fff; }
         
-        #oocOut { height: 350px; resize: none; font-family: monospace; font-size: 11px; color: #eee; line-height: 1.6; }
+        button { 
+            font-weight: 900; cursor: pointer; background: #fff; color: #000; 
+            border: none; letter-spacing: 2px; text-transform: uppercase; transition: 0.2s;
+        }
+        button:hover { background: #ccc; box-shadow: 0 0 15px rgba(255,255,255,0.4); }
+        
+        #oocOut { 
+            width: 100%; height: 450px; resize: none; background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.2); color: #00ff41; /* 터미널 텍스트 컬러 지정 (원하면 흰색으로 변경 가능) */
+            padding: 15px; font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.6;
+            color: #fff; /* 전체 B&W 유지 */
+        }
+        #oocOut:focus { border-color: #fff; }
 
         /* --- 하단 스테이터스 --- */
         footer {
-            height: 50px; background: #000; border-top: 1px solid var(--line-color);
+            height: 30px; background: #000; border-top: 1px solid var(--line-color);
             display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
             font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 2px;
         }
     </style>
 </head>
-<body id="body-main">
+<body>
 
-<div class="fade-black" id="blackout"></div>
+<div class="scanline-effect"></div>
 
 <header>
-    <div class="logo-area">
+    <div class="logo-area flicker">
         <img src="「ARCH」 Symbol Logo White Ver.png" class="header-logo" alt="ARCH">
-        <span>STRATEGIC_COMMAND</span>
+        <span>ARCH_CENTRAL_DATABASE // v17.0</span>
     </div>
-    <div id="clock" style="font-family: 'Orbitron'; font-size: 14px; color: #fff;">00:00:00</div>
 </header>
 
 <div id="main-container">
     <div class="side-panel">
         <div class="ui-section">
-            <div class="ui-label">UNIT_DATA_SYNC <span>[01]</span></div>
-            <input type="text" id="name1" placeholder="SENTINEL_NAME">
-            <input type="text" id="id1" placeholder="SENTINEL_ID (e.g. DOARIN)">
-            <input type="text" id="name2" placeholder="GUIDE_NAME">
-            <input type="text" id="id2" placeholder="GUIDE_ID (e.g. HUGO)">
+            <div class="ui-label">AGENT_SYNC <span>[OP_SETUP]</span></div>
+            <input type="text" id="name1" placeholder="[센티넬] 이름 입력 (ex. 모모)">
+            <input type="text" id="name2" placeholder="[가이드] 이름 입력 (ex. 휴고)">
         </div>
 
-        <div class="ui-section">
-            <div class="ui-label">WORLD_ARCHIVE <span>[DATABASE]</span></div>
-            <div id="archive-list">
-                <div class="archive-item" onclick="openArchive('fire')">속성: 불 (FIRE)</div>
-                <div class="archive-item" onclick="openArchive('water')">속성: 물 (WATER)</div>
-                <div class="archive-item" onclick="openArchive('lightning')">속성: 번개 (LIGHTNING)</div>
-                <div class="archive-item" onclick="openArchive('rank')">직급: ACCOLYTE ~ PRIMA</div>
-                <div class="archive-item" onclick="openArchive('monster')">위협: 괴수 & 타락 개체</div>
-                <div class="archive-item" onclick="openArchive('guiding')">가이딩 & 중독 & 각인</div>
-            </div>
-        </div>
-        
-        <div style="flex:1; opacity:0.1; text-align:center;">
-             <img src="「ARCH」 Symbol Logo White Ver.png" style="width:200px; margin-top:50px;">
+        <div class="ui-section" style="flex:1; overflow-y:auto;">
+            <div class="ui-label">WORLD_ARCHIVE <span>[CLASSIFIED]</span></div>
+            
+            <div class="archive-category">◆ CORE DEFINITION</div>
+            <div class="archive-item" onclick="loadLore('sentinel_guide')">센티넬 & 가이드 개론</div>
+            <div class="archive-item" onclick="loadLore('rank')">ARCH 직급 체계</div>
+            <div class="archive-item" onclick="loadLore('facility')">ARCH 주요 시설물</div>
+
+            <div class="archive-category">◆ 6-ELEMENTS ATTRIBUTES</div>
+            <div class="archive-item" onclick="loadLore('attr_fire')">[속성] 불 (FIRE)</div>
+            <div class="archive-item" onclick="loadLore('attr_water')">[속성] 물 (WATER)</div>
+            <div class="archive-item" onclick="loadLore('attr_grass')">[속성] 풀 (GRASS)</div>
+            <div class="archive-item" onclick="loadLore('attr_lightning')">[속성] 번개 (LIGHTNING)</div>
+            <div class="archive-item" onclick="loadLore('attr_wind')">[속성] 바람 (WIND)</div>
+            <div class="archive-item" onclick="loadLore('attr_ice')">[속성] 얼음 (ICE)</div>
+
+            <div class="archive-category">◆ GUIDING PROTOCOLS</div>
+            <div class="archive-item" onclick="loadLore('guiding_level')">신체접촉 및 가이딩 효율</div>
+            <div class="archive-item" onclick="loadLore('addiction')">가이딩 중독 및 부작용</div>
+            <div class="archive-item" onclick="loadLore('sync_destiny')">싱크로율 91% : 각인 (운명)</div>
         </div>
     </div>
 
-    <div id="map-viewport">
-        <div id="map-canvas">
-            <div class="point" style="top:2000px; left:2000px;" onclick="selectLoc('aegis')"><span class="point-label">CENTRAL_AEGIS</span></div>
-            <div class="point" style="top:1800px; left:2200px;" onclick="selectLoc('training')"><span class="point-label">SPEC_TRAINING</span></div>
-            <div class="point" style="top:2200px; left:1800px;" onclick="selectLoc('medical')"><span class="point-label">MEDICAL_BAY</span></div>
-            <div class="point" style="top:1900px; left:1750px;" onclick="selectLoc('lounge')"><span class="point-label">OFFICER_LOUNGE</span></div>
-            <div class="point" style="top:2300px; left:2100px;" onclick="selectLoc('emergency')"><span class="point-label">STABILIZATION</span></div>
-            <div class="point" style="top:1250px; left:1950px;" onclick="selectLoc('garden')"><span class="point-label">SKY_GARDEN</span></div>
-        </div>
-
-        <div id="data-popup">
-            <div id="pop-title" style="font-size:24px; font-weight:900; margin-bottom:15px; color:#fff; border-left: 5px solid #fff; padding-left:15px;">DATA_SCAN</div>
-            <div id="pop-content" style="font-size:14px; line-height:1.8; color:rgba(255,255,255,0.8); font-family:'Noto Sans KR';">데이터 로딩 중...</div>
-            <button onclick="closePop()" style="margin-top:25px; width:auto; padding:8px 25px;">CLOSE</button>
-        </div>
+    <div id="center-display">
+        <img src="「ARCH」 Symbol Logo White Ver.png" class="bg-logo" alt="">
+        <div id="viewer-title">AWAITING_DATA_REQUEST</div>
+        <div id="viewer-content">좌측 아카이브에서 열람할 항목을 선택하십시오. 기밀 데이터 접근 시 주의가 필요합니다.</div>
     </div>
 
     <div class="side-panel">
-        <div class="ui-section">
-            <div class="ui-label">DEPLOYMENT_PROTOCOL</div>
-            <p class="ui-guide">지도에서 작전 구역을 먼저 선택하십시오.</p>
-            <div style="background:rgba(255,255,255,0.05); padding:15px; margin-bottom:15px; border-radius:4px;">
-                <label style="font-size:9px; color:rgba(255,255,255,0.4);">TARGET_AREA</label>
-                <div id="currentLoc" style="font-size:18px; font-weight:900; margin-top:5px;">NOT_SELECTED</div>
+        <div class="ui-section" style="height: 100%; display:flex; flex-direction:column; border:none; padding:0; background:transparent;">
+            <div class="ui-label" style="border-bottom:2px solid #fff; padding-bottom:10px;">MISSION_OOC_GENERATOR <span>[DECRYPT]</span></div>
+            
+            <div style="font-size:11px; color:rgba(255,255,255,0.6); margin-bottom:15px; line-height:1.4;">
+                * 작전 구역과 세부 임무 목표가 무작위로 생성됩니다.<br>
+                * 생성된 프로토콜 복사 후 RP 시작 지점에 붙여넣으세요.
             </div>
-            <select id="mType">
-                <option value="code_red">코드 레드: 긴급 출동</option>
-                <option value="training">특별통제 구역 훈련</option>
-                <option value="guiding">집중 가이딩 세션</option>
+
+            <select id="missionType">
+                <option value="combat">분류: A-CLASS (괴수/폭주 제압 전투)</option>
+                <option value="rescue">분류: B-CLASS (민간인 구출/위험 구역 탐색)</option>
+                <option value="training">분류: S-CLASS (가상현실 파트너십 평가)</option>
+                <option value="emergency">분류: CODE-BLACK (긴급 강제 가이딩 처방)</option>
             </select>
-            <button onclick="triggerAction()">EXECUTE_OPS</button>
-            <textarea id="oocOut" readonly placeholder="AWAITING MISSION DATA..."></textarea>
-            <div id="typing-cursor" class="cursor"></div>
+            
+            <button onclick="generateOOC()" style="margin-bottom: 15px;">GENERATE_PROTOCOL</button>
+            
+            <textarea id="oocOut" readonly placeholder="[SYSTEM] READY TO DEPLOY..."></textarea>
         </div>
     </div>
 </div>
 
 <footer>
-    <div>© 2026 ARCH_AEGIS_CONTROL_SYSTEM //v16.0_OVERDRIVE</div>
-    <div id="clock">00:00:00</div>
+    <div>ARCH_AEGIS_CONTROL // AUTHORIZED PERSONNEL ONLY</div>
+    <div>ENCRYPTION LEVEL: MAXIMUM</div>
 </footer>
 
 <script>
-    // 1. 데이터베이스 (로어북 데이터 반영)
-    const loreDB = {
-        locs: {
-            aegis: { t: "아이기스 (The Aegis)", c: "ARCH의 이동 지휘 요새. 바다 위를 떠다니며 전 세계 센티넬 작전을 통제합니다. 모든 작전의 심장부입니다." },
-            training: { t: "특별통제 훈련장", c: "지하 깊숙한 곳의 격리 시설. S급 이상의 파괴적인 능력을 시험하며, 파트너 간의 싱크로율을 실전 테스트하는 장소입니다." },
-            medical: { t: "의무 스테이션", c: "폭주 전조 증상을 보이는 센티넬을 격리 치료합니다. 최첨단 의료 장비와 속성 차폐막이 비치되어 있습니다." },
-            lounge: { t: "요원 전용 라운지", c: "긴장된 작전 후 휴식을 취하는 공간. 속성 간의 간섭을 차단하는 특수 필드가 깔려 있습니다." },
-            emergency: { t: "비상 안정화실", c: "가이딩 수치 80% 초과 시 강제 연행되는 격리실. 생존을 위한 구속 가이딩이 행해지는 공포의 공간입니다." },
-            garden: { t: "하늘 정원", c: "반중력 기술로 구현된 부유 녹지. 센티넬의 정신적 안정을 위해 고안된 이카로스의 테마 장소입니다." }
+    // --- 1. 극강의 디테일 로어북 데이터베이스 ---
+    const loreData = {
+        sentinel_guide: {
+            t: "센티넬 & 가이드 개론",
+            c: "■ 센티넬 (Sentinel)\n인간의 한계를 초월한 신체 능력과 원소 제어 능력을 지닌 초인. 강대한 힘의 대가로 오감과 감정이 극도로 예민하며, 능력을 사용할수록 '오염도'가 쌓여 폭주(Rampage)의 위험에 노출된다. 폭주 시 자아를 잃고 주변의 모든 것을 파괴하는 괴수로 전락한다.\n\n■ 가이드 (Guide)\n센티넬의 폭주를 막고 오염된 파장을 정화할 수 있는 유일한 존재. 신체 접촉이나 정신적 교감을 통해 센티넬을 '가이딩'하며, 각 속성에 맞는 특수한 버프(치유, 공격력 증폭, 한계 돌파 등)를 제공한다. 센티넬에게 가이드는 구원이자 맹목적인 집착의 대상이 되기 쉽다."
         },
-        lore: {
-            fire: { t: "속성: 불", c: "센티넬: 최전선 섬멸의 핵심. 확실한 파괴력을 지녔으나 감정 기복이 심함.<br>가이드: 아군 공격력을 극대화하는 기폭제 역할." },
-            water: { t: "속성: 물", c: "센티넬: 고요하지만 모든 것을 침식하는 힘. 광범위 장악에 특화.<br>가이드: '걸어 다니는 의무실'. 치유와 정화 담당." },
-            lightning: { t: "속성: 번개", c: "센티넬: 인지하는 순간 끝나는 초고속 암살 스페셜리스트.<br>가이드: 반응 속도를 극한으로 끌어올리며 심정지 소생도 가능." },
-            rank: { t: "직급 체계", c: "애콜라이트(신입) - 에이전트(주력) - 뱅가드(전설) - 아크 프리마(원소의 군주). 군주의 정체는 최고 기밀입니다." },
-            monster: { t: "위협 세력", c: "괴수(초자연적 파괴 존재), 폭주 개체(제어 상실한 센티넬), 타락 센티넬(세뇌로 인간성 상실)." },
-            guiding: { t: "가이딩 프로토콜", c: "가이딩 중독: 쾌락에 대한 심리적 의존.<br>각인: 싱크로율 91% 이상 시 발생하는 영구적 정신 동조." }
+        rank: {
+            t: "ARCH 직급 체계",
+            c: "ARCH 기관은 철저한 실력과 통제력을 기반으로 계급을 나눈다.\n\n- 애콜라이트 (Acolyte): 막 발현하여 통제력을 배우는 신입 요원.\n- 에이전트 (Agent): 실전에 투입되는 주력 전투원.\n- 뱅가드 (Vanguard): 전설적인 성과를 이룬 정예 요원. 단독 작전권 부여.\n- 아크 프리마 (Arch Prima): 각 속성별 정점에 선 '원소의 군주'. 이들의 정체는 ARCH의 최고 기밀로 분류되며, 전 지구적 재난 상황에만 모습을 드러낸다."
+        },
+        facility: {
+            t: "ARCH 주요 시설물",
+            c: "■ 아이기스 (Aegis)\nARCH의 메인 지휘 통제소이자 바다 위를 부유하는 이동형 초대형 요새. 전 세계의 센티넬 작전을 총괄한다.\n\n■ 특별통제 훈련장 (VRTS)\nS급 이상의 파괴적인 능력을 시험하거나, 센티넬과 가이드 간의 한계 싱크로율을 실전처럼 테스트하는 지하시설.\n\n■ 비상 안정화실 (Isolation Room)\n가이딩 수치가 위험치에 도달하거나 폭주 직전의 센티넬을 감금하는 격리실. 생존을 위한 강제 구속 및 가이딩 프로토콜이 시행되는 차갑고 폭력적인 공간이다."
+        },
+        attr_fire: {
+            t: "속성: 불 (FIRE)",
+            c: "[센티넬의 특징]\n압도적인 파괴력과 화력을 자랑하는 전장의 섬멸자. 감정 기복이 매우 심하며, 분노하거나 폭주 전조 증상을 보일 때 주변 온도가 급격히 상승하고 물건이 자연 발화한다.\n\n[가이드 버프 효과]\n가이딩 시 센티넬의 공격력과 폭발 반경을 극대화하는 '기폭제' 역할을 한다. 치명적인 일격을 위한 오버클럭을 가능하게 한다."
+        },
+        attr_water: {
+            t: "속성: 물 (WATER)",
+            c: "[센티넬의 특징]\n유연하지만 모든 것을 잠식하고 꿰뚫는 힘. 광범위한 전장 장악 및 절단(수압 커터)에 특화되어 있다. 폭주 시 주변의 수분을 모조리 빼앗거나 익사시키는 공간을 형성한다.\n\n[가이드 버프 효과]\n'걸어 다니는 의무실'. 극한의 치유력, 체내 독소 및 오염 정화, 그리고 물리적 충격을 흡수하는 수막 방어막을 부여한다."
+        },
+        attr_grass: {
+            t: "속성: 풀 (GRASS)",
+            c: "[센티넬의 특징]\n끈질긴 생명력과 맹독, 속박을 다루는 전술의 핵. 식물의 뿌리와 넝쿨을 이용해 적의 움직임을 봉쇄하거나 신경독을 주입한다. 폭주 시 통제 불능의 가시덩굴이 주변을 찢어발긴다.\n\n[가이드 버프 효과]\n지속적인 체력 회복(리제네레이션)과 상태 이상 면역 부여. 장기전에서 센티넬이 지치지 않게 하는 무한한 동력원이 된다."
+        },
+        attr_lightning: {
+            t: "속성: 번개 (LIGHTNING)",
+            c: "[센티넬의 특징]\n인지하는 순간 이미 목이 날아가 있는 초고속 암살의 스페셜리스트. 뇌전을 다루며 적의 신경계를 태워버린다. 틱 장애나 과잉 행동을 보일 수 있으며, 폭주 시 주변 일대에 무차별적인 낙뢰가 떨어진다.\n\n[가이드 버프 효과]\n센티넬의 반응 속도를 극한(시간이 멈춘 것처럼 느낌)으로 끌어올리며, 치명상 시 전기 충격으로 심정지를 소생시키는 AED 역할을 한다."
+        },
+        attr_wind: {
+            t: "속성: 바람 (WIND)",
+            c: "[센티넬의 특징]\n형체 없는 칼날이자 기동성의 정점. 진공 상태를 만들어 상대를 질식시키거나 태풍을 일으킨다. 속박을 극도로 혐오하며, 폭주 시 주변을 갈기갈기 찢는 칼바람의 소용돌이를 생성한다.\n\n[가이드 버프 효과]\n회피율을 극도로 상승시키고 기척을 완벽히 지우는 '은신(스텔스)' 능력을 부여한다. 바람의 저항을 없애 초음속 비행을 보조한다."
+        },
+        attr_ice: {
+            t: "속성: 얼음 (ICE)",
+            c: "[센티넬의 특징]\n절대 영도의 공간을 만들어내는 전장의 지배자. 냉철하고 감정 표현이 적으나 한 번 폭발하면 걷잡을 수 없다. 폭주 시 주변의 분자 운동을 멈춰 모든 것을 으스러지게 얼려버린다.\n\n[가이드 버프 효과]\n가장 과열되기 쉬운 센티넬의 정신력을 강제로 쿨다운 시키는 진정제. 또한 파괴 불가능한 절대 빙벽(방어력 대폭 상승)을 구축하게 돕는다."
+        },
+        guiding_level: {
+            t: "신체접촉 및 가이딩 효율",
+            c: "가이딩의 효율은 파트너 간의 '접촉 수위'에 절대적으로 비례한다.\n\n- 1단계 (손잡기, 포옹): 일상적인 안정화. 소량의 오염도 감소.\n- 2단계 (체액 교환, 키스): 전투 중 급격히 쌓인 오염도를 빠르게 중화.\n- 3단계 (점막 접촉, 육체적 결합): 치사량에 달한 오염도를 극적으로 씻어내는 최고 효율의 가이딩. 이 단계에서 센티넬은 뇌를 녹이는 듯한 강렬한 쾌락을 느낀다."
+        },
+        addiction: {
+            t: "가이딩 중독 및 부작용",
+            c: "고수위의 가이딩이 주는 쾌락은 마약과도 같아, 센티넬은 점차 파트너 가이드의 타액, 페로몬, 살결에 심리적/육체적으로 병적인 의존성을 띄게 된다. 이를 '가이딩 중독'이라 칭하며, 가이드가 곁에 없으면 극심한 금단 현상(자해, 분노 조절 장애, 호흡 곤란)을 겪는다. ARCH는 이를 경계하지만 암묵적으로 통제의 수단으로 방관하기도 한다."
+        },
+        sync_destiny: {
+            t: "싱크로율 91% : 각인 (운명)",
+            c: "일반적인 파트너의 싱크로율은 50~70% 내외이다. 그러나 드물게 싱크로율이 '91%'를 초과하는 쌍이 발생하며, 이를 '각인(Imprinting)' 현상이라 부른다.\n\n각인된 센티넬과 가이드는 물리적 거리를 무시하고 서로의 감정, 고통, 심지어 생명력까지 공유하는 완벽한 하나의 영혼으로 묶인다. 한쪽이 죽으면 다른 한쪽도 미쳐버리거나 심정지하게 되는, 저주받은 '운명'의 결속이다."
         }
     };
 
-    let selectedLocKey = "";
-
-    // 2. 이펙트 및 애니메이션 시스템 (전체 B&W화)
-    // 2-1. 클릭 파티클 효과
-    document.addEventListener("click", e => {
-        for(let i=0; i<8; i++){
-            const p = document.createElement("div");
-            p.style.position="fixed"; p.style.width="2px"; p.style.height="2px";
-            p.style.background="#fff"; p.style.left=e.clientX+"px"; p.style.top=e.clientY+"px";
-            p.style.boxShadow="0 0 8px #fff"; p.style.zIndex="10000"; p.style.pointerEvents="none";
-            document.body.appendChild(p);
-
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 30 + Math.random() * 50;
-            const tx = Math.cos(angle) * dist;
-            const ty = Math.sin(angle) * dist;
-
-            p.animate([
-                { transform: 'translate(0, 0)', opacity: 1 },
-                { transform: `translate(${tx}px, ${ty}px)`, opacity: 0 }
-            ], { duration: 600, easing: 'cubic-bezier(0,1,1,1)' }).onfinish = () => p.remove();
+    function loadLore(key) {
+        document.querySelectorAll('.archive-item').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        const data = loreData[key];
+        document.getElementById('viewer-title').innerText = data.t;
+        
+        // 타이핑 효과를 위한 초기화
+        const contentDiv = document.getElementById('viewer-content');
+        contentDiv.innerHTML = '';
+        
+        let text = data.c;
+        let i = 0;
+        // 매우 빠른 텍스트 출력 효과 (SF 단말기 느낌)
+        function typeWriter() {
+            if (i < text.length) {
+                contentDiv.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 5); // 속도 조절
+            }
         }
-    });
-
-    // 2-2. 배경 스타더스트 (50개)
-    const canvasMap = document.getElementById('map-canvas');
-    for(let i=0; i<50; i++){
-        const dot = document.createElement("div");
-        dot.style.position="absolute"; dot.style.width="2px"; dot.style.height="2px";
-        dot.style.background="rgba(255,255,255,0.3)";
-        dot.style.top=Math.random()*100+"%"; dot.style.left=Math.random()*100+"%";
-        dot.style.pointerEvents="none";
-        canvasMap.appendChild(dot);
+        typeWriter();
     }
 
-    // 2-3. 포인트 유동적 위치 이동 (5초)
-    setInterval(()=>{
-        document.querySelectorAll('.point').forEach(p=>{
-            const cx = parseFloat(p.style.left);
-            const cy = parseFloat(p.style.top);
-            p.style.left = (cx + (Math.random()-0.5)*20) + "px";
-            p.style.top = (cy + (Math.random()-0.5)*20) + "px";
-        });
-    }, 5000);
+    // --- 2. 다이나믹 작전/OOC 생성기 엔진 ---
+    const locations = [
+        "제 13구역 로즈우드 아파트 단지 B동 지하주차장",
+        "폐쇄된 지하철역 신도림 환승구역 B4층",
+        "구(舊) 도심 제 2산업단지 버려진 화학 공장",
+        "상업 지구 '네온 스퀘어' 72층 스카이라운지",
+        "외곽 격리 구역 '침묵의 숲' 반경 3km 지점",
+        "ARCH 해상 요새 '아이기스' 제 4 갑판 하부",
+        "민간 상선 '리바이어던 호' 중앙 화물칸"
+    ];
 
-    // 3. 지도 및 UI 제어 엔진
-    let s = 1, x = -1800, y = -1200, down = false, sx, sy;
-    const canvas = document.getElementById('map-canvas');
-    const viewport = document.getElementById('map-viewport');
-    
-    const update = () => canvas.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
-    update();
+    const threats = [
+        "B급 폭주 센티넬 (속성 미상) 다수 발생",
+        "분류 코드 '그리즐리' - 대형 침식 괴수 출현",
+        "타락한 ARCH 에이전트의 테러 인질극",
+        "원인 불명의 대규모 속성 오염 지대 확장",
+        "미등록 센티넬 무장 조직의 데이터 뱅크 습격"
+    ];
 
-    viewport.onwheel = e => { e.preventDefault(); s += e.deltaY * -0.001; s = Math.min(Math.max(0.3, s), 2); update(); };
-    canvas.onmousedown = e => { down = true; sx = e.clientX - x; sy = e.clientY - y; viewport.style.cursor = 'grabbing'; };
-    window.onmouseup = () => { down = false; viewport.style.cursor = 'grab'; };
-    window.onmousemove = e => { if(!down) return; x = e.clientX - sx; y = e.clientY - sy; update(); };
-
-    function selectLoc(id) {
-        selectedLocKey = id;
-        const data = loreDB.locs[id];
-        document.getElementById('currentLoc').innerText = data.t;
-        document.getElementById('pop-title').innerText = data.t;
-        document.getElementById('pop-content').innerHTML = data.c;
-        document.getElementById('data-popup').style.display = 'block';
-    }
-
-    function openArchive(id) {
-        const data = loreDB.lore[id];
-        document.getElementById('pop-title').innerText = data.t;
-        document.getElementById('pop-content').innerHTML = data.c;
-        document.getElementById('data-popup').style.display = 'block';
-    }
-
-    function closePop() { document.getElementById('data-popup').style.display = 'none'; }
-
-    // 4. 세세하고 긴 OOC 생성기 (사용자 예시 반영)
-    function triggerAction() {
-        if(!selectedLocKey) { alert("지도에서 작전 구역을 먼저 선택하십시오."); return; }
+    function generateOOC() {
+        const sName = document.getElementById('name1').value || "SENTINEL";
+        const gName = document.getElementById('name2').value || "GUIDE";
+        const mType = document.getElementById('missionType').value;
         
-        const b = document.getElementById('body-main');
-        const m = document.getElementById('map-viewport');
-        const sN = document.getElementById('name1').value || "SENTINEL";
-        const sI = document.getElementById('id1').value || "UNKNOWN_ID";
-        const gN = document.getElementById('name2').value || "GUIDE";
-        const gI = document.getElementById('id2').value || "UNKNOWN_ID";
-        
-        // 글리치 및 펄스 효과
-        b.classList.add('glitch-screen');
-        m.classList.add('map-pulse');
-        
-        setTimeout(() => {
-            b.classList.remove('glitch-screen');
-            m.classList.remove('map-pulse');
-            
-            const areaName = db.locs[selectedLocKey].t;
-            
-            const oocProtocols = {
-                code_red: `[ ARCH IMMEDIATE DEPLOYMENT ORDER ]
-CLASSIFICATION: A-CLASS
-CODE: NIGHTMARE_${Date.now().toString().slice(-4)}
-TO: AGENT ${sN.toUpperCase()} (ID: ${sI.toUpperCase()}), GUIDE ${gN.toUpperCase()} (ID: ${gI.toUpperCase()})
+        const randLoc = locations[Math.floor(Math.random() * locations.length)];
+        const randThreat = threats[Math.floor(Math.random() * threats.length)];
+        const timeLimit = Math.floor(Math.random() * 60) + 10;
+        const codeNum = Date.now().toString().slice(-5);
+
+        let outputText = "";
+
+        if(mType === 'combat') {
+            outputText = `[ ARCH IMMEDIATE DEPLOYMENT ORDER ]
+CLASSIFICATION: A-CLASS COMBAT
+CODE: NIGHTMARE_${codeNum}
+TO: AGENT [${sName.toUpperCase()}] & GUIDE [${gName.toUpperCase()}]
 FROM: CENTRAL CONTROL
+
+■ 작전 개요:
+${randLoc}에서 ${randThreat} 사태 발생. 현 시간부로 해당 구역은 민간인 통제 및 대피 절차에 돌입함. 1차 투입된 선발대와의 통신이 두절되었으며, 현장에 강력한 정신 오염 필드가 전개되고 있음. 즉각적인 개입이 없을 시 반경 5km 이내 2차 오염 연쇄 반응이 우려됨.
+
+■ 주요 목표:
+1. 타겟 개체의 완벽한 무력화 및 섬멸.
+2. 교전 중 [${sName}]의 오염도 급증이 예상되므로, 파트너 [${gName}]는 현장 인접 거리에서 시야를 확보하고 즉각적인 전투 가이딩(버프 지원)을 대기할 것.
+3. 저항이 격렬할 시 시설물 파괴를 전면 허가함.
+
+■ 작전 구역:
+[ ${randLoc} ]
+
+"T-MINUS 180 SECONDS. 가장 가까운 게이트로 즉시 강하할 것."
 --------------------------------------------------
-[작전 개요]
-작전 구역 'ARCH ${areaName}' 인근 민간인 거주 구역에서 B급 센티넬의 제어 불능 폭주 사태 발생. 현 시간부로 해당 구역은 민간인 통제 및 대피 프로토콜에 돌입. 1차 투입된 현장 요원팀과의 통신 두절. 대상의 파장 패턴이 매우 불안정하며, 주변에 강력한 정신 오염 필드를 형성 중. 추가적인 인명 피해 및 2차 폭주 연쇄 반응이 우려되는 상황.
+*[OOC: 위 브리핑을 바탕으로 무작위 생성된 구역 도착 직후, 혹은 교전이 시작되는 긴박한 상황부터 RP를 전개하십시오.]*`;
 
-[주요 목표]
-폭주 센티넬의 즉각적인 무력화 및 가이딩을 통한 안정화. 생존을 최우선으로 하되, 저항이 격렬할 시 '긴급 제압' 및 '강제 가이딩 프로토콜' 가동을 허가함.
+        } else if (mType === 'rescue') {
+            outputText = `[ ARCH SEARCH & RESCUE PROTOCOL ]
+CLASSIFICATION: B-CLASS TACTICAL
+CODE: SILENT_DAWN_${codeNum}
+TO: TEAM [${sName.toUpperCase()}]-[${gName.toUpperCase()}]
 
-[세부 작전 구역]
-[ ARCH ${areaName} 전술 구역 B-4 702호 ]
+■ 작전 개요:
+${randLoc} 내부에서 다수의 생존자 신호 포착. 그러나 해당 구역은 심각한 독성/원소 잔재로 오염되어 일반 구조대 진입 불가. 센티넬의 돌파력과 가이드의 정화 능력이 동시 요구됨.
 
-"T-MINUS 120 SECONDS. 가장 가까운 게이트로 즉시 출동할 것."
+■ 임무 수칙:
+1. 생존자 구출이 최우선. 전투는 회피를 권장함.
+2. 붕괴 위험이 높으므로 [${sName}]의 과도한 이능 사용은 자제할 것.
+3. 오염 지대 돌파 시 [${gName}]는 파트너의 호흡기 및 신체 점막을 통한 오염을 막기 위해 2단계 이상(밀착 및 점막 접촉)의 가이딩 배리어를 상시 유지할 것.
+
+"타임 리미트: ${timeLimit}분. 대피로를 확보하라."
 --------------------------------------------------
-[⚠️ SYSTEM NOTICE] 위 프로토콜에 따라 RP 상황을 전개하십시오.`,
+*[OOC: 무너져가는 좁고 어두운 구조물 내부. 오염을 막기 위해 서로의 숨결이 닿을 정도로 밀착한 상태에서 진행되는 아슬아슬한 구출 RP를 전개하십시오.]*`;
 
-                training: `[🔔ARCH NOTICE]
-TO. Sentinel '${sN}' / FROM. ARCH Central Integration Dept.
-SUBJECT: S급 가이드 '${gN}'와의 파트너십 심층 평가 테스트 알림
+        } else if (mType === 'training') {
+            outputText = `[🔔 ARCH VR-TRAINING NOTICE ]
+TO: Sentinel '${sName}'
+CC: Guide '${gName}'
+SUBJECT: S급 파트너십 심층 평가 및 한계 돌파 테스트
+
+■ 목표: 파트너 간의 정신적 동기화(Sync) 한계점 도출.
+■ 장소: 특별통제 훈련장 (VRTS) 시뮬레이션 룸 제 7구역.
+
+■ 내용:
+본 테스트는 가상 전장 환경에서 극한의 고통과 오염 수치를 인위적으로 부여합니다. 
+[${sName}]은 쏟아지는 적의 웨이브를 방어해야 하며, [${gName}]은 파트너의 멘탈이 붕괴되기 직전까지 가이딩을 조율하며 생명줄을 잡고 있어야 합니다.
+본 테스트는 '가이딩 중독' 및 '각인(91%+)' 징후를 관찰하기 위한 ARCH 연구소의 극비 프로토콜이 포함되어 있습니다. 종료 후 전문 하모니 심리 상담이 강제 연계됩니다.
+
+- 불참 시 정당한 사유서 제출 요망.
 --------------------------------------------------
-[목표] 파트너 간의 정신적 동기화 및 전술적 연계 능력의 한계점 측정.
-[장소] ARCH 특별통제 훈련장 (ARCH ${areaName}) 3번 시뮬레이션 룸
-[내용] 귀하와 파트너 '${gN}'는 지정된 시각에 훈련장에 출석하여, 가상 전장 환경에서 진행되는 '프로토콜: 에코'를 수행하게 됩니다. 본 테스트는 파트너십 데이터의 정밀 분석을 위해 극도의 정신적 부하를 유발할 수 있으며, 종료 후 전문 심리 상담이 연계됩니다.
+*[OOC: 가상의 피와 고통이 난무하는 훈련장 내부. 오염도 한계치에 달해 폭주 직전인 ${sName}과, 수단과 방법을 가리지 않고 억눌러야 하는 ${gName}의 치열한 가이딩 RP를 전개하십시오.]*`;
 
-"지정된 일시에 훈련장에 출석하여 테스트 준비를 완료할 것."
+        } else if (mType === 'emergency') {
+            outputText = `[ 🚨 CODE BLACK: EMERGENCY ISOLATION ]
+CLASSIFICATION: OVERRIDE COMMAND
+LOCATION: 비상 안정화실 (Isolation Room - Sector 0)
+SUBJECT: Sentinel [${sName}]
 
-- 본 테스트는 파트너십 등급 재조정의 근거가 될 수 있으며, 불참 시 정당한 사유서 제출을 요함.
+■ 경고 문구:
+대상 센티넬의 내부 오염도가 89%를 돌파. 자아 붕괴 및 완전 폭주까지 T-MINUS 10분.
+본부 내 2차 피해를 막기 위해 대상을 '비상 안정화실'로 강제 연행 및 구속 조치 완료함.
+
+■ 강제 가이딩 명령:
+지정 파트너 [${gName}]는 즉시 안정화실로 입실하여 프로토콜 '이카로스'를 실행할 것.
+단순 접촉으로는 폭주를 억제할 수 없음. 3단계(육체적 결합 수준) 이상의 최고 수위 가이딩을 통해 강제적으로 파장을 억눌러 씻어내야 함. 대상의 이성적 판단이 불가능하므로, 가이드 측의 강력한 통제와 제압이 요구됨.
+
+"센티넬을 살려내든, 아니면 그 방에서 함께 죽든. 수단은 묻지 않겠다." - ARCH 중앙 통제실
 --------------------------------------------------
-[⚠️ SYSTEM NOTICE] 위 노티스에 따라 RP 상황을 전개하십시오.`,
+*[OOC: 차갑고 밀폐된 격리실. 구속구에 묶여 짐승처럼 헐떡이며 페로몬을 뿜어내는 ${sName}과, 폭주를 멈추기 위해 가장 짙고 끈적한 가이딩을 시작해야 하는 ${gName}의 RP를 전개하십시오.]*`;
+        }
 
-                rest: `*[OOC: 상황 전개]\n\n대상 요원: ${sN} / ${gN}\n작전 위치: ARCH ${areaName} (라운지 및 상담실)\n\n상황: 격렬한 작전 후 복귀. ${sN}의 오염 수치가 불안정하여 긴급 가이딩 및 하모니 심리상담이 연계되었습니다. ${gN}는 파트너의 안정을 위해 라운지에서 함께 휴식을 취하거나 상담실로 이동해야 합니다.\n\n* 위 상황에 맞춰 RP를 시작하십시오.*`
-            };
-            
-            document.getElementById('oocOut').value = oocProtocols[document.getElementById('mType').value];
-        }, 400);
+        // 출력창에 뿌리기
+        const outBox = document.getElementById('oocOut');
+        outBox.value = "";
+        
+        let i = 0;
+        // 터미널 타이핑 효과
+        function typeOOC() {
+            if (i < outputText.length) {
+                outBox.value += outputText.charAt(i);
+                i++;
+                outBox.scrollTop = outBox.scrollHeight; // 자동 스크롤
+                setTimeout(typeOOC, 3); // 속도
+            }
+        }
+        typeOOC();
     }
-
-    // 시계 업데이트
-    setInterval(() => {
-        document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB');
-    }, 1000);
+    
+    // 초기 화면 인사말
+    document.addEventListener("DOMContentLoaded", () => {
+        loadLore('sentinel_guide');
+    });
 </script>
 
 </body>
