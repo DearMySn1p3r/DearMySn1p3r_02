@@ -2,206 +2,318 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ARCH_STRATEGIC_COMMAND_v21.0</title>
+    <title>ARCH_STRATEGIC_COMMAND_v23.0</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@100;300;500;700&display=swap');
 
         :root {
             --bg: #000;
-            --line: rgba(255, 255, 255, 0.2);
+            --line: rgba(255, 255, 255, 0.12);
             --font: 'Orbitron', 'Noto Sans KR', sans-serif;
             --accent: #fff;
+            --dim: rgba(255, 255, 255, 0.4);
         }
 
-        /* --- 1. 기본 스타일 및 커서 제거 --- */
+        /* --- BASIC SETUP & CURSOR --- */
         * { box-sizing: border-box; outline: none; cursor: none !important; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #fff; }
+        ::-webkit-scrollbar { width: 2px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
 
         body {
             margin: 0; background: var(--bg); color: var(--accent);
             font-family: var(--font); height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column; transition: 0.5s background, 0.3s filter;
+            display: flex; flex-direction: column; transition: 0.4s filter;
         }
 
-        /* --- 2. 움직이는 도트 배경 (요청 사항) --- */
-        body::before {
-            content: ""; position: fixed; width: 200%; height: 200%;
-            background: radial-gradient(white 1px, transparent 1px);
-            background-size: 40px 40px; opacity: 0.05;
-            animation: moveBg 20s linear infinite; z-index: -1;
-        }
-        @keyframes moveBg { from { transform: translate(0,0); } to { transform: translate(-50px,-50px); } }
-
-        /* --- 3. 커스텀 커서 (요청 사항) --- */
         #cursor {
-            position: fixed; width: 30px; height: 30px; border: 1px solid #fff;
-            border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 9999;
+            position: fixed; width: 40px; height: 40px; border: 1px solid var(--accent);
+            border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 10000;
+            mix-blend-mode: difference; transition: transform 0.1s;
         }
-        #cursor::after {
-            content: ''; position: absolute; width: 5px; height: 5px;
-            background: #fff; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        }
+        #cursor::before { content: ''; position: absolute; top: 50%; width: 100%; height: 1px; background: var(--line); }
+        #cursor::after { content: ''; position: absolute; left: 50%; height: 100%; width: 1px; background: var(--line); }
 
-        /* --- 4. SF 효과 & 글리치 --- */
+        /* --- SFX: BACKGROUND & HUD DECO --- */
         .scanline {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(255, 255, 255, 0.05) 50%);
-            background-size: 100% 4px; pointer-events: none; z-index: 1000;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(255, 255, 255, 0.03) 50%);
+            background-size: 100% 4px; pointer-events: none; z-index: 9000;
         }
 
-        @keyframes screenBreak {
-            0% { transform: translate(0); }
-            20% { transform: translate(-5px, 3px); }
-            40% { transform: translate(5px, -3px); }
-            100% { transform: translate(0); }
+        .bg-grid {
+            position: fixed; width: 200%; height: 200%;
+            background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+            background-size: 60px 60px; transform: rotate(15deg); opacity: 0.1; z-index: -1;
+            animation: gridMove 60s linear infinite;
         }
-        .glitch-active { animation: screenBreak 0.1s infinite; }
+        @keyframes gridMove { from { transform: rotate(15deg) translate(0,0); } to { transform: rotate(15deg) translate(-60px, -60px); } }
 
-        /* --- HEADER & VITALS --- */
+        /* --- LAYOUT --- */
         header {
-            height: 60px; border-bottom: 2px solid #fff;
+            height: 70px; border-bottom: 1px solid var(--accent);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 25px; background: #000; z-index: 100;
+            padding: 0 40px; background: #000; z-index: 500;
         }
-        #vitals { font-size: 10px; color: rgba(255,255,255,0.7); text-align: right; line-height: 1.4; }
-        .status-dot { color: #0f0; animation: pulseLine 1s infinite alternate; }
 
-        /* --- MAIN LAYOUT (v18 보존) --- */
         #main-wrapper {
-            display: grid; grid-template-columns: 350px 1fr 450px;
+            display: grid; grid-template-columns: 380px 1fr 480px;
             flex: 1; overflow: hidden; gap: 1px; background: var(--line);
         }
-        .panel { background: #000; padding: 20px; overflow-y: auto; position: relative; }
+        .panel { background: #000; padding: 30px; overflow-y: auto; position: relative; }
 
-        /* --- TACTICAL NODES & ACTIVE STYLE --- */
-        #tactical-display { display: flex; align-items: center; justify-content: center; }
-        .node-net { width: 85%; height: 85%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        /* --- LORE LIST (Spacing Fix) --- */
+        .lore-cat { font-size: 10px; color: var(--dim); margin: 30px 0 10px 0; border-bottom: 1px solid #222; letter-spacing: 3px; }
+        .lore-item { 
+            padding: 14px; font-size: 13px; cursor: pointer; color: #777; transition: 0.3s;
+            font-family: 'Noto Sans KR'; line-height: 1.6;
+        }
+        .lore-item:hover { color: #fff; background: rgba(255,255,255,0.05); padding-left: 20px; }
+
+        /* --- CENTER HUD: TACTICAL GRID --- */
+        #tactical-display { 
+            display: flex; align-items: center; justify-content: center; 
+            background: radial-gradient(circle, #0a0a0a 0%, #000 100%);
+        }
+        .radar-circle {
+            position: absolute; width: 600px; height: 600px; border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 50%; pointer-events: none;
+        }
+        .node-net { width: 90%; height: 80%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; z-index: 10; }
         .node {
-            border: 1px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.6);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s; position: relative;
+            transition: 0.3s; position: relative;
         }
-        .node:hover { transform: scale(1.05); border-color: #fff; }
-        
-        /* 활성화 노드 스타일 (요청 사항) */
-        .node.active { background: #fff !important; color: #000 !important; box-shadow: 0 0 25px #fff; }
-        .node.active::after {
-            content: ''; position: absolute; width: 120%; height: 120%; border: 1px solid #fff;
-            animation: pulseLine 0.3s infinite alternate;
-        }
-        @keyframes pulseLine { from { opacity: 0.2; } to { opacity: 1; } }
+        .node:hover { border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        .node.active { background: #fff !important; color: #000 !important; box-shadow: 0 0 40px #fff; }
+        .node i { font-size: 9px; margin-bottom: 10px; opacity: 0.4; font-style: normal; }
+        .node span { font-size: 11px; font-weight: 900; text-align: center; letter-spacing: 1px; }
 
         /* --- DATA OVERLAY --- */
         #data-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.98); display: none; padding: 60px; z-index: 500; border: 5px solid #fff;
+            background: rgba(0,0,0,0.98); display: none; padding: 80px; z-index: 1000; border: 1px solid #fff;
         }
+        #ov-title { font-size: 38px; font-weight: 900; margin-bottom: 25px; border-left: 8px solid #fff; padding-left: 20px; }
+        #ov-content { font-size: 16px; line-height: 1.9; color: #bbb; font-family: 'Noto Sans KR'; white-space: pre-wrap; }
 
-        /* --- OOC & SYNC BAR --- */
-        #sync-bar-container { width: 100%; margin-bottom: 20px; }
-        #sync-bar { width: 100%; height: 6px; background: #222; border: 1px solid #444; position: relative; }
-        #sync-fill { width: 50%; height: 100%; background: #fff; transition: 0.5s; box-shadow: 0 0 10px #fff; }
+        /* --- RIGHT HUD: MISSION & ANALYTICS --- */
+        .hud-gauge-group { display: flex; gap: 15px; margin-bottom: 30px; }
+        .circle-gauge {
+            width: 80px; height: 80px; border: 4px double var(--line); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--dim);
+            position: relative;
+        }
+        .circle-gauge::after {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            border: 2px solid #fff; border-radius: 50%; border-top-color: transparent;
+            animation: spin 3s linear infinite;
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        input, select, textarea { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; margin-bottom: 10px; font-family: inherit; }
-        button { width: 100%; padding: 15px; background: #fff; color: #000; border: none; font-weight: 900; cursor: pointer; }
-        
+        .sync-section { margin-bottom: 30px; }
+        #sync-bar { width: 100%; height: 2px; background: #222; margin-top: 10px; position: relative; }
+        #sync-fill { width: 45%; height: 100%; background: #fff; box-shadow: 0 0 15px #fff; transition: 1s ease; }
+
+        input, select { 
+            width: 100%; background: #0a0a0a; border: 1px solid #333; color: #fff; 
+            padding: 15px; margin-bottom: 12px; font-family: inherit; font-size: 13px;
+        }
+        button { 
+            width: 100%; padding: 20px; background: #fff; color: #000; border: none; 
+            font-weight: 900; letter-spacing: 5px; transition: 0.3s;
+        }
+        button:hover { background: #888; }
+
         #ooc-terminal {
-            flex: 1; margin-top: 20px; background: rgba(255,255,255,0.02); border: 1px solid #222;
-            padding: 15px; font-family: monospace; font-size: 12px; height: 250px; overflow-y: auto;
+            flex: 1; margin-top: 30px; background: rgba(255,255,255,0.02); border: 1px solid #222;
+            padding: 20px; font-family: monospace; font-size: 12px; height: 300px; overflow-y: auto;
+            color: #888; line-height: 1.7; position: relative;
         }
 
-        /* --- 로딩 오버레이 --- */
+        /* --- INTERNAL NOTIFICATION (Replaces Alert) --- */
+        #system-notif {
+            position: fixed; bottom: 40px; right: 40px; width: 320px;
+            background: #fff; color: #000; padding: 20px; font-weight: 900;
+            display: none; z-index: 11000; letter-spacing: 1px; font-size: 12px;
+            box-shadow: 10px 10px 0px rgba(255,255,255,0.2);
+        }
+
+        /* --- BOOTING --- */
         #boot-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; color: #fff; display: flex; align-items: center; justify-content: center;
-            z-index: 10000; font-size: 14px; letter-spacing: 10px;
+            background: #000; z-index: 20000; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; letter-spacing: 15px; font-weight: 100;
         }
     </style>
 </head>
 <body>
 
 <div id="cursor"></div>
-<div id="boot-screen">ACCESSING ARCH SYSTEM...</div>
+<div id="boot-screen">INITIALIZING_ARCH_CORE...</div>
+<div id="system-notif">>> MESSAGE_RECEIVED</div>
 <div class="scanline"></div>
+<div class="bg-grid"></div>
 
 <header>
-    <div style="display:flex; align-items:center; gap:15px;">
-        <img src="「ARCH」 Symbol Logo White Ver.png" style="height:25px;">
-        <span>ARCH_STRATEGIC_CONTROL_UNIT</span>
+    <div style="display:flex; align-items:center; gap:25px;">
+        <img src="「ARCH」 Symbol Logo White Ver.png" style="height:35px;">
+        <span style="font-weight:900; letter-spacing:6px; font-size:18px;">ARCH_STRATEGIC_COMMAND</span>
     </div>
-    <div id="vitals">
-        <span class="status-dot">●</span> SYSTEM_STATUS: ONLINE<br>
-        HEART RATE: <span id="hr">72</span> BPM | TEMP: <span id="temp">36.5</span>℃
+    <div style="text-align:right; font-size:11px; color:var(--dim); line-height:1.6;">
+        STATUS: <span style="color:#fff;">OPTIMIZED</span> // AUTH: <span style="color:#fff;">ROOT_LEVEL</span><br>
+        <span id="clock">00:00:00</span> // KOREA_SEOUL_UNIT
     </div>
 </header>
 
 <div id="main-wrapper">
     <div class="panel">
-        <div style="font-weight:900; border-bottom:1px solid #fff; padding-bottom:5px; margin-bottom:15px;">DATABASE_INDEX</div>
-        <div id="lore-list">
-            </div>
+        <div style="font-weight:900; border-bottom:1px solid #fff; padding-bottom:12px; margin-bottom:15px;">CLASSIFIED_DATABASE_v23</div>
+        <div id="lore-list"></div>
     </div>
 
     <div id="tactical-display" class="panel">
-        <div class="node-net" id="node-grid">
-            </div>
+        <div class="radar-circle" style="width:400px; height:400px;"></div>
+        <div class="radar-circle" style="width:700px; height:700px;"></div>
+        <div class="node-net" id="node-grid"></div>
+        
         <div id="data-overlay">
-            <div style="text-align:right;"><button onclick="closeLore()" style="width:auto; padding:5px 20px;">CLOSE [X]</button></div>
-            <h2 id="ov-title">LOC_NAME</h2>
+            <div style="text-align:right; margin-bottom:20px;">
+                <button onclick="closeLore()" style="width:auto; padding:8px 30px;">[ TERMINATE_LINK ]</button>
+            </div>
+            <div id="ov-title">TITLE</div>
             <div id="ov-content">CONTENT</div>
         </div>
     </div>
 
     <div class="panel">
-        <div style="font-weight:900; border-bottom:1px solid #fff; padding-bottom:5px; margin-bottom:15px;">MISSION_OOC_SYSTEM</div>
-        <div id="sync-bar-container">
-            <div style="font-size:9px; color:#666; margin-bottom:5px;">RESONANCE_SYNC</div>
+        <div class="hud-gauge-group">
+            <div class="circle-gauge">CORE<br><span id="gauge-val">88</span>%</div>
+            <div class="circle-gauge">SYNC<br>STABLE</div>
+            <div class="circle-gauge">TEMP<br>36.5℃</div>
+        </div>
+
+        <div class="sync-section">
+            <div style="font-size:10px; color:var(--dim); letter-spacing:2px; display:flex; justify-content:space-between;">
+                <span>RESONANCE_SYNC_RATE</span>
+                <span id="sync-val">45%</span>
+            </div>
             <div id="sync-bar"><div id="sync-fill"></div></div>
         </div>
-        <input type="text" id="sName" placeholder="TARGET_SENTINEL">
-        <input type="text" id="gName" placeholder="TARGET_GUIDE">
+
+        <input type="text" id="sName" placeholder="INSERT_SENTINEL_NAME">
+        <input type="text" id="gName" placeholder="INSERT_GUIDE_NAME">
         <select id="mType">
-            <option value="A">A-CLASS: IMMEDIATE DEPLOYMENT</option>
-            <option value="S">S-CLASS: PARTNERSHIP TEST</option>
-            <option value="K">CODE-BLACK: FORCED STABILIZATION</option>
+            <option value="A">전술 섬멸 작전 (TYPE_A)</option>
+            <option value="S">공명 정밀 테스트 (TYPE_S)</option>
+            <option value="B">구역 탐색 및 정찰 (TYPE_B)</option>
+            <option value="K">코드 블랙: 강제 안정화 (TYPE_K)</option>
         </select>
-        <button onclick="generateOOC()">GENERATE_DOC</button>
-        <div id="ooc-terminal">READY TO RECEIVE COMMAND...</div>
+        <button onclick="generateOOC()">INITIATE_MISSION</button>
+        
+        <div id="ooc-terminal">>> SYSTEM_READY. AWAITING_COMMAND...</div>
     </div>
 </div>
 
 <script>
-    // --- v18 DATABASE (완벽 보존) ---
+    // --- 띄어쓰기 및 맞춤법 정밀 교정 데이터베이스 ---
     const db = {
-        loc_aegis: { t: "아이기스 (The Aegis)", c: "이동 요새 도시. 능력자들의 유일한 안식처이자 완벽한 감옥." },
-        loc_train_sp: { t: "특별통제 훈련장", c: "위험 등급 센티넬을 위한 지하 격리 시설. 특수 합금 투기장." },
-        loc_harmony: { t: "하모니 심리상담실", c: "트라우마 관리 및 파트너 관계 유지 전용 공간." },
-        loc_stab: { t: "비상 안정화실", c: "오염도 80% 초과 개체 긴급 구속 및 강제 가이딩 시설." },
-        loc_garden: { t: "하늘정원", c: "바람의 군주 이카로스가 발견한 고대 반중력 부유섬." },
-        attr_fire: { t: "속성: 불 (FIRE)", c: "파괴력의 핵. 가이드는 공격력을 극대화하는 기폭제 역할을 함." },
-        rank_van: { t: "뱅가드 (선봉대)", c: "'살아있는 전설'. 최강의 전투력과 깊은 고뇌를 지님." },
-        secret_prima: { t: "🔓 ARCH_PRIMA_ROOT", c: "기밀 데이터 해제: 군주들의 기원은 [데이터 말소]와 연결되어 있습니다." }
+        rank_aco: { t: "애콜라이트 (Acolyte)", c: "기관에 갓 입소한 신입 요원들을 지칭합니다. 자신의 능력을 온전히 제어하지 못하는 상태이며, 감정 변화에 따른 파장 오염 속도가 매우 빠릅니다. 가이드의 밀착 보호가 필수적인 단계로, '미정제 원석' 혹은 '걸어 다니는 시한폭탄'이라 불리기도 합니다." },
+        rank_agt: { t: "에이전트 (Agent)", c: "ARCH의 중추적인 전력입니다. 자신의 능력을 85% 이상 스스로 통제할 수 있으며, 실전 경험이 풍부합니다. 대부분의 등급전 및 외부 괴수 섬멸 임무를 수행하며, 파트너 가이드와의 전술적 호흡이 완성된 전문가 집단입니다." },
+        rank_van: { t: "뱅가드 (Vanguard)", c: "살아있는 전설이자 전쟁 병기입니다. 단독으로 도시 하나를 파괴하거나 수호할 수 있는 압도적인 화력을 지녔습니다. 그러나 힘을 사용할수록 영혼의 마모가 극심해져 만성적인 정신 오염에 시달립니다. 이들에게 가이딩은 단순한 치료가 아닌 생존 그 자체입니다." },
+        rank_pri: { t: "아크 프리마 (Arch-Prima)", c: "기관의 정점에 군림하는 다섯 명의 원소 군주입니다. 이들의 존재 자체가 ARCH의 최고 기밀이며, 각 속성의 근원에 가장 맞닿아 있습니다. 신인류의 진화 방향을 결정짓는 존재들로, 이들의 파장은 행성 전체의 에너지 흐름에 영향을 미칩니다." },
+        
+        attr_fire: { t: "속성: 불 (FIRE)", c: "[센티넬] 분자 운동을 가속해 초고온의 화염을 생성합니다. 공격력이 가장 높지만 폭주 시 자신마저 태울 위험이 있습니다.\n[가이드] 센티넬의 파장을 가열하여 순간적인 섬멸력을 폭발적으로 증폭시키는 기폭제 역할을 합니다." },
+        attr_water: { t: "속성: 물 (WATER)", c: "[센티넬] 유동적인 방어와 광역 제압에 특화되어 있습니다. 주변의 습도를 조절해 적을 침식합니다.\n[가이드] 신경계를 부드럽게 감싸는 정화의 정점입니다. 모든 속성 중 가이딩 시 센티넬이 느끼는 평온함이 가장 큽니다." },
+        
+        sync_protocol: { t: "공명 및 각인 규정", c: "싱크로율이 91%를 초과할 경우 '각인(Imprint)' 상태로 간주합니다. 이 단계에서는 물리적인 접촉 없이도 정신적인 연결만으로 가이딩이 가능해집니다. 다만, 파트너 중 한 명이 사망할 경우 남은 한 명은 즉시 가역 불가능한 폭주 상태에 빠지게 됩니다." },
+        guiding_level: { t: "가이딩 단계 지침", c: "1단계: 시각 및 청각적 동조 (안정화 10%)\n2단계: 단순 신체 접촉 (안정화 40%)\n3단계: 심층 접촉 가이딩 (안정화 75%)\n4단계: 각인 및 완전 결합 (안정화 100%)." },
+        
+        loc_aegis: { t: "본부: 아이기스 (The Aegis)", c: "태평양 한가운데 부유하는 초거대 인공 요새입니다. 전 세계의 초상 현상을 감시하는 관제 센터이며, 요원들이 외부의 위협으로부터 유일하게 보호받는 안식처입니다. 내부에는 속성별 맞춤 생활 공간과 특수 훈련 시설이 완비되어 있습니다." },
+        loc_stab: { t: "비상 안정화실 (STAB)", c: "정신 오염도가 위험 수위(80%)를 넘어선 센티넬들을 수용하는 특수 격리 시설입니다. 모든 벽면이 파장 억제 물질로 코팅되어 있으며, 가이드의 강제 투입을 통한 고수위 가이딩이 상시 진행됩니다." }
     };
 
-    const logs = [">> SIGNAL DETECTED", ">> SENTINEL HEART RATE SPIKE", ">> GUIDE LINK STABLE", ">> ERROR: UNKNOWN ENTITY", ">> SYNC RATE INCREASING"];
+    const logs = [">> SIGNAL DETECTED", ">> NEURAL_RESONANCE_OK", ">> SCANNING_ZONE_04", ">> WARNING: OXYGEN_LOW", ">> SYNC_RATE_STABLE"];
     let clickCount = 0;
 
-    // --- 1. 커스텀 커서 로직 ---
+    // --- 커서 로직 ---
     const cursor = document.getElementById('cursor');
     document.addEventListener('mousemove', (e) => {
         cursor.style.left = e.clientX + 'px';
         cursor.style.top = e.clientY + 'px';
     });
 
-    // --- 2. 로딩 화면 (v18 보존을 위해 리로드 대신 오버레이 사용) ---
+    // --- 부팅 및 알림 시스템 (alert 대체) ---
     window.onload = () => {
         setTimeout(() => {
             document.getElementById('boot-screen').style.display = 'none';
-        }, 1500);
+            showNotification("ARCH_SYSTEM_CONNECTED");
+        }, 2000);
+        renderLore();
+        renderNodes();
     };
 
-    // --- 3. 타이핑 효과 함수 ---
+    function showNotification(msg) {
+        const notif = document.getElementById('system-notif');
+        notif.innerText = `>> ${msg}`;
+        notif.style.display = 'block';
+        setTimeout(() => { notif.style.display = 'none'; }, 3000);
+    }
+
+    // --- 데이터 렌더링 ---
+    function renderLore() {
+        const list = document.getElementById('lore-list');
+        const categories = {
+            "요원 등급 체계": ["rank_aco", "rank_agt", "rank_van", "rank_pri"],
+            "원소 속성 분류": ["attr_fire", "attr_water"],
+            "시스템 프로토콜": ["sync_protocol", "guiding_level"],
+            "시설 기밀 구역": ["loc_aegis", "loc_stab"]
+        };
+
+        for (let cat in categories) {
+            let catDiv = document.createElement('div');
+            catDiv.className = 'lore-cat';
+            catDiv.innerText = cat;
+            list.appendChild(catDiv);
+            categories[cat].forEach(key => {
+                let item = document.createElement('div');
+                item.className = 'lore-item';
+                item.innerText = db[key].t;
+                item.onclick = () => showLore(key);
+                list.appendChild(item);
+            });
+        }
+    }
+
+    function renderNodes() {
+        const grid = document.getElementById('node-grid');
+        const nodes = ["CORE_01", "TR_DOME", "MEDICAL", "LOUNGE", "QUARTERS", "RES_LAB", "STAB_FAC", "ARCHIVE", "COMMAND", "ICARUS", "VOID", "LOCKED"];
+        nodes.forEach((name, i) => {
+            let n = document.createElement('div');
+            n.className = 'node';
+            n.innerHTML = `<i>${String(i+1).padStart(2,'0')}</i><span>${name}</span>`;
+            n.onclick = () => {
+                document.querySelectorAll('.node').forEach(x => x.classList.remove('active'));
+                n.classList.add('active');
+                showNotification(`NODE_${name}_CONNECTED`);
+                showLore(Object.keys(db)[i % Object.keys(db).length]);
+                
+                clickCount++;
+                if(clickCount > 15) document.body.style.filter = "contrast(1.5) hue-rotate(10deg)";
+            };
+            grid.appendChild(n);
+        });
+    }
+
+    function showLore(key) {
+        const ov = document.getElementById('data-overlay');
+        ov.style.display = 'block';
+        typeText(db[key].t, document.getElementById('ov-title'));
+        typeText(db[key].c, document.getElementById('ov-content'));
+    }
+
+    function closeLore() { document.getElementById('data-overlay').style.display = 'none'; }
+
     function typeText(text, el) {
         let i = 0; el.innerText = "";
         let interval = setInterval(() => {
@@ -210,85 +322,45 @@
         }, 15);
     }
 
-    // --- 4. 노드 생성 및 클릭 이벤트 (v18 기반 + 효과 추가) ---
-    const grid = document.getElementById('node-grid');
-    const nodes = ["THE AEGIS", "SPECIAL TRAIN", "TRAIN DOME", "HARMONY", "LOUNGE", "RESONANCE LAB", "STABILIZATION", "MEDICAL BAY", "PRIVATE ROOM", "CENTRAL CORE", "SKY GARDEN", "LOCKED"];
-    
-    nodes.forEach((name, i) => {
-        let n = document.createElement('div');
-        n.className = 'node';
-        n.innerHTML = `<i>${String(i+1).padStart(2,'0')}</i><span>${name}</span>`;
-        
-        n.onclick = () => {
-            clickCount++;
-            // 클릭 카운트 효과 (요청 사항)
-            if(clickCount > 10) document.body.style.filter = "contrast(1.5)";
-            if(clickCount > 20) document.body.style.filter = "invert(1)";
-
-            document.querySelectorAll('.node').forEach(node => node.classList.remove('active'));
-            n.classList.add('active');
-
-            // 12번 노드 시크릿 로직 (요청 사항)
-            if(i === 11) {
-                if(Math.random() > 0.5) {
-                    alert("🔓 SECRET FILE UNLOCKED: ARCH_PRIMA DATA");
-                    showLore('secret_prima');
-                } else { alert("ACCESS DENIED"); }
-            } else {
-                showLore('loc_aegis'); // 샘플 출력
-            }
-        };
-        grid.appendChild(n);
-    });
-
-    function showLore(key) {
-        const overlay = document.getElementById('data-overlay');
-        overlay.style.display = 'block';
-        typeText(db[key].t, document.getElementById('ov-title'));
-        typeText(db[key].c, document.getElementById('ov-content'));
-    }
-
-    function closeLore() { document.getElementById('data-overlay').style.display = 'none'; }
-
-    // --- 5. 시스템 경고 알림 (15초/10초 루프) ---
-    setInterval(() => {
-        if (Math.random() < 0.15) alert("⚠ SYSTEM WARNING: UNSTABLE RESONANCE DETECTED");
-    }, 15000);
-
-    setInterval(() => {
-        if(Math.random() < 0.1){
-            alert("🚨 SENTINEL OVERLOAD DETECTED");
-            document.body.classList.add('glitch-active');
-            setTimeout(() => document.body.classList.remove('glitch-active'), 1000);
-        }
-    }, 10000);
-
-    // --- 6. 바이탈 & 터미널 로그 업데이트 ---
-    setInterval(() => {
-        document.getElementById('hr').innerText = Math.floor(Math.random() * (110 - 65) + 65);
-        document.getElementById('temp').innerText = (Math.random() * (38 - 36) + 36).toFixed(1);
-    }, 2000);
-
-    setInterval(() => {
-        const term = document.getElementById('ooc-terminal');
-        const log = logs[Math.floor(Math.random() * logs.length)];
-        term.innerText += "\n" + log;
-        term.scrollTop = term.scrollHeight;
-    }, 3000);
-
-    // --- 7. OOC 생성기 (v18 로직 유지) ---
+    // --- OOC 생성 (띄어쓰기 및 맞춤법 교정) ---
     function generateOOC() {
-        const s = document.getElementById('sName').value || "UNKNOWN";
-        const sync = Math.floor(Math.random() * 100);
-        document.getElementById('sync-fill').style.width = sync + "%";
+        const s = document.getElementById('sName').value || "미등록_센티넬";
+        const g = document.getElementById('gName').value || "미등록_가이드";
+        const type = document.getElementById('mType').value;
+        const sync = Math.floor(Math.random() * 60 + 40);
         
-        // 싱크 수치에 따른 배경색 변화
-        if(sync > 85) document.body.style.background = "#200";
-        else document.body.style.background = "#000";
+        document.getElementById('sync-fill').style.width = sync + "%";
+        document.getElementById('sync-val').innerText = `${sync}%`;
 
-        const term = document.getElementById('ooc-terminal');
-        typeText(`[ ARCH MISSION ]\nTARGET: ${s}\nSYNC: ${sync}%\nSTATUS: PROCESSING...`, term);
+        let header = `[ ARCH MISSION BRIEFING ]\nCODE: X-${Math.random().toString(36).substr(2,5).toUpperCase()}\n------------------------\n`;
+        let profile = `대상 센티넬: ${s}\n지원 가이드: ${g}\n현재 싱크로율: ${sync}%\n\n`;
+
+        const messages = {
+            A: `■ 작전명: 전술 섬멸 작전\n상황: 구역 내 B급 괴수 개체 출현. 센티넬 ${s}의 화력 투입을 승인합니다. 가이드 ${g}는 센티넬의 파장 마모를 최소화하기 위해 현장 밀착 가이딩을 실시하십시오.`,
+            S: `■ 작전명: 공명 정밀 테스트\n상황: 신규 각인 대상자 간의 파장 동기화 측정. ${s}와 ${g}는 훈련 돔 7구역으로 이동하여 3단계 접촉 가이딩 효율을 정밀 측정하십시오.`,
+            K: `■ 작전명: 🚨 코드 블랙 (강제 안정화)\n상황: 센티넬 ${s}의 오염도가 임계점을 돌파했습니다. 가이드 ${g}는 즉시 비상 안정화실로 이동하여 구속 가이딩을 시행하십시오. 거부 시 강제 집행 프로토콜이 발효됩니다.`
+        };
+
+        typeText(header + profile + (messages[type] || messages.A), document.getElementById('ooc-terminal'));
+        showNotification("MISSION_DATA_ENCRYPTED");
     }
+
+    // --- 실시간 루프 (HUD) ---
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB');
+        document.getElementById('gauge-val').innerText = Math.floor(Math.random() * 20 + 80);
+    }, 1000);
+
+    setInterval(() => {
+        const term = document.getElementById('ooc-terminal');
+        term.innerText += `\n>> ${logs[Math.floor(Math.random() * logs.length)]}`;
+        term.scrollTop = term.scrollHeight;
+    }, 4000);
+
+    // 랜덤 시스템 경고 (alert 대신 알림 UI)
+    setInterval(() => {
+        if(Math.random() < 0.1) showNotification("WARNING: UNSTABLE_RESONANCE_DETECTED");
+    }, 12000);
 </script>
 
 </body>
