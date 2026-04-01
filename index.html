@@ -2,46 +2,52 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ARCH_STRATEGIC_INTERFACE_v15.0</title>
+    <title>ARCH_STRATEGIC_OPS_CONTROL_v16.0</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@100;300;500;700&display=swap');
 
         :root {
-            --neon-blue: #00f2ff;
-            --arch-gold: #d4af37;
-            --danger-red: #ff3e3e;
-            --bg-dark: #020406;
-            --panel-bg: rgba(0, 10, 15, 0.98);
+            --neon-blue: #00f2ff; /* 파티클/글리치용 포인트 컬러 */
+            --bg-dark: #000000;
+            --panel-bg: rgba(5, 5, 5, 0.98);
             --font-main: 'Orbitron', 'Noto Sans KR', sans-serif;
+            --line-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* --- 전체 레이아웃 및 기본 애니메이션 --- */
+        /* --- 전체 레이아웃 및 애니메이션 시스템 --- */
         * { box-sizing: border-box; outline: none; }
         body {
             margin: 0; background: var(--bg-dark); color: #fff;
             font-family: var(--font-main); height: 100vh; overflow: hidden;
             display: flex; flex-direction: column;
+            cursor: crosshair;
         }
 
         /* 글리치 애니메이션 정의 */
         @keyframes screenGlitch {
             0% { transform: translate(0); filter: hue-rotate(0); }
-            20% { transform: translate(-5px, 3px); filter: hue-rotate(90deg); }
-            40% { transform: translate(5px, -3px); filter: hue-rotate(180deg); }
-            60% { transform: translate(-3px, 2px); filter: hue-rotate(270deg); }
+            20% { transform: translate(-10px, 5px); filter: brightness(3) contrast(1.5); }
+            40% { transform: translate(10px, -5px); filter: invert(1); }
+            60% { transform: translate(-5px, 3px); filter: hue-rotate(180deg); }
             100% { transform: translate(0); filter: none; }
         }
-        .glitch-screen { animation: screenGlitch 0.4s; }
+        .glitch-screen { animation: screenGlitch 0.5s; }
 
         @keyframes mapPulse {
             0% { filter: brightness(1); }
-            50% { filter: brightness(2); }
+            50% { filter: brightness(2) contrast(1.2); }
             100% { filter: brightness(1); }
         }
-        .map-pulse { animation: mapPulse 0.6s; }
+        .map-pulse { animation: mapPulse 0.7s; }
 
         @keyframes blink { 50% { opacity:0; } }
-        .cursor { display:inline-block; width:10px; background:var(--neon-blue); animation: blink 1s infinite; }
+        .cursor { display:inline-block; width:10px; background:#fff; animation: blink 1s infinite; }
+
+        /* 페이드 블랙 전환 효과 */
+        .fade-black {
+            position:fixed; width:100%; height:100%; background:black;
+            top:0; left:0; opacity:0; pointer-events:none; transition:0.3s; z-index:9999;
+        }
 
         /* --- 상단 헤더 --- */
         header {
@@ -49,43 +55,44 @@
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 30px; background: #000; z-index: 100;
         }
-        .logo-area { display: flex; align-items: center; gap: 15px; font-weight: 900; letter-spacing: 3px; }
+        .logo-area { display: flex; align-items: center; gap: 15px; font-weight: 900; letter-spacing: 5px; font-size: 20px; }
         .header-logo { height: 35px; }
 
-        /* --- 메인 레이아웃 --- */
+        /* --- 메인 컨테이너 레이아웃 --- */
         #main-container {
-            display: grid; grid-template-columns: 380px 1fr 380px;
-            flex: 1; gap: 2px; background: rgba(255,255,255,0.05);
+            display: grid; grid-template-columns: 400px 1fr 400px;
+            flex: 1; gap: 1px; background: var(--line-color);
         }
 
         .side-panel {
-            background: var(--panel-bg); display: flex; flex-direction: column; padding: 20px;
-            overflow-y: auto; position: relative; border: 1px solid rgba(255,255,255,0.05);
+            background: var(--panel-bg); display: flex; flex-direction: column; padding: 25px;
+            overflow-y: auto; position: relative; border: 1px solid var(--line-color);
         }
 
-        .ui-section { margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); padding: 15px; background: rgba(255,255,255,0.02); }
+        .ui-section { margin-bottom: 25px; border: 1px solid var(--line-color); padding: 15px; background: rgba(255,255,255,0.02); }
         .ui-label {
-            font-size: 11px; letter-spacing: 2px; color: var(--neon-blue);
+            font-size: 11px; letter-spacing: 2px; color: #fff;
             margin-bottom: 10px; display: flex; justify-content: space-between;
-            border-bottom: 1px solid var(--neon-blue); padding-bottom: 5px;
+            border-bottom: 1px solid #fff; padding-bottom: 5px;
         }
+        .ui-guide { font-size: 10px; color: rgba(255,255,255,0.4); margin-bottom: 10px; line-height: 1.4; }
 
-        /* 아카이브 리스트 */
+        /* --- 아카이브 리스트 --- */
         .archive-item {
-            padding: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px;
-            font-size: 12px; cursor: pointer; transition: 0.2s; background: rgba(255,255,255,0.03);
+            padding: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px;
+            font-size: 12px; cursor: pointer; transition: 0.2s; color: rgba(255,255,255,0.6);
         }
-        .archive-item:hover { background: var(--neon-blue); color: #000; font-weight: 700; }
+        .archive-item:hover { background: #fff; color: #000; font-weight: 700; border-left: 5px solid #fff; }
 
-        /* --- 중앙 맵 --- */
+        /* --- 중앙 전술 지도 --- */
         #map-viewport {
-            position: relative; overflow: hidden; background: radial-gradient(circle, #0a1018 0%, #000 100%);
+            position: relative; overflow: hidden; background: #000;
             cursor: grab;
         }
         #map-canvas {
-            width: 4000px; height: 4000px; position: absolute;
+            width: 4000px; height: 3000px; position: absolute;
             background-image: 
-                radial-gradient(rgba(0, 242, 255, 0.1) 1px, transparent 1px),
+                radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
                 linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
             background-size: 100px 100px, 25px 25px, 25px 25px;
@@ -97,35 +104,36 @@
             border-radius: 2px; transform: rotate(45deg);
             box-shadow: 0 0 15px #fff; cursor: pointer; z-index: 10; transition: 0.5s ease-in-out;
         }
+        .point:hover { background: #fff; box-shadow: 0 0 25px #fff; transform: rotate(45deg) scale(1.3); }
         .point-label {
             position: absolute; top: 25px; left: 50%; transform: translateX(-50%) rotate(-45deg);
-            font-size: 9px; white-space: nowrap; color: rgba(255,255,255,0.7); letter-spacing: 1px;
+            font-size: 10px; font-weight: 700; white-space: nowrap; color: #fff; letter-spacing: 1px;
+            background: rgba(0,0,0,0.7); padding: 2px 5px;
         }
 
+        /* 데이터 팝업 */
         #data-popup {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            width: 600px; background: rgba(0, 5, 10, 0.95); border: 2px solid var(--neon-blue);
+            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+            width: 700px; background: rgba(0, 0, 0, 0.98); border: 2px solid #fff;
             padding: 30px; display: none; z-index: 1000;
             clip-path: polygon(0 20px, 20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
         }
 
-        /* 페이드 블랙 (전환 효과용) */
-        .fade-black {
-            position:fixed; width:100%; height:100%; background:black;
-            top:0; left:0; opacity:0; pointer-events:none; transition:0.3s; z-index:9999;
-        }
-
+        /* --- 입력 요소 및 OOC 출력 --- */
         input, select, textarea, button {
             width: 100%; background: #000; border: 1px solid rgba(255,255,255,0.2);
-            color: #fff; padding: 10px; font-size: 13px; margin-bottom: 10px;
+            color: #fff; padding: 10px; font-size: 13px; margin-bottom: 10px; font-family: inherit;
         }
-        button { font-family: 'Orbitron'; font-weight: 900; cursor: pointer; background: #fff; color: #000; border: none; }
-        button:hover { background: var(--neon-blue); }
+        button { font-weight: 900; cursor: pointer; background: #fff; color: #000; border: none; letter-spacing: 2px; }
+        button:hover { background: #ccc; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
+        
+        #oocOut { height: 350px; resize: none; font-family: monospace; font-size: 11px; color: #eee; line-height: 1.6; }
 
+        /* --- 하단 스테이터스 --- */
         footer {
-            height: 50px; background: #000; border-top: 1px solid rgba(255,255,255,0.1);
+            height: 50px; background: #000; border-top: 1px solid var(--line-color);
             display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
-            font-size: 10px; color: rgba(255,255,255,0.4);
+            font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 2px;
         }
     </style>
 </head>
@@ -136,63 +144,77 @@
 <header>
     <div class="logo-area">
         <img src="「ARCH」 Symbol Logo White Ver.png" class="header-logo" alt="ARCH">
-        <span>AEGIS_STRATEGIC_COMMAND</span>
+        <span>STRATEGIC_COMMAND</span>
     </div>
-    <div style="font-size: 10px; color: var(--neon-blue);">POSITION: FLOATING_FORTRESS_CITY</div>
+    <div id="clock" style="font-family: 'Orbitron'; font-size: 14px; color: #fff;">00:00:00</div>
 </header>
 
 <div id="main-container">
     <div class="side-panel">
         <div class="ui-section">
-            <div class="ui-label">WORLD_ARCHIVE <span>[DB]</span></div>
+            <div class="ui-label">UNIT_DATA_SYNC <span>[01]</span></div>
+            <input type="text" id="name1" placeholder="SENTINEL_NAME">
+            <input type="text" id="id1" placeholder="SENTINEL_ID (e.g. DOARIN)">
+            <input type="text" id="name2" placeholder="GUIDE_NAME">
+            <input type="text" id="id2" placeholder="GUIDE_ID (e.g. HUGO)">
+        </div>
+
+        <div class="ui-section">
+            <div class="ui-label">WORLD_ARCHIVE <span>[DATABASE]</span></div>
             <div id="archive-list">
-                <div class="archive-item" onclick="openLore('fire')">속성: 불 (FIRE)</div>
-                <div class="archive-item" onclick="openLore('water')">속성: 물 (WATER)</div>
-                <div class="archive-item" onclick="openLore('lightning')">속성: 번개 (LIGHTNING)</div>
-                <div class="archive-item" onclick="openLore('rank')">직급: ACCOLYTE ~ PRIMA</div>
-                <div class="archive-item" onclick="openLore('monster')">위협: 괴수 & 타락 개체</div>
-                <div class="archive-item" onclick="openLore('guiding')">가이딩 & 중독 & 각인</div>
+                <div class="archive-item" onclick="openArchive('fire')">속성: 불 (FIRE)</div>
+                <div class="archive-item" onclick="openArchive('water')">속성: 물 (WATER)</div>
+                <div class="archive-item" onclick="openArchive('lightning')">속성: 번개 (LIGHTNING)</div>
+                <div class="archive-item" onclick="openArchive('rank')">직급: ACCOLYTE ~ PRIMA</div>
+                <div class="archive-item" onclick="openArchive('monster')">위협: 괴수 & 타락 개체</div>
+                <div class="archive-item" onclick="openArchive('guiding')">가이딩 & 중독 & 각인</div>
             </div>
         </div>
+        
         <div style="flex:1; opacity:0.1; text-align:center;">
-             <img src="「ARCH」 Symbol Logo White Ver.png" style="width:150px; margin-top:50px;">
+             <img src="「ARCH」 Symbol Logo White Ver.png" style="width:200px; margin-top:50px;">
         </div>
     </div>
 
     <div id="map-viewport">
         <div id="map-canvas">
-            <div class="point" style="top:2000px; left:2000px;" onclick="selectLoc('aegis')"><span class="point-label">THE AEGIS</span></div>
+            <div class="point" style="top:2000px; left:2000px;" onclick="selectLoc('aegis')"><span class="point-label">CENTRAL_AEGIS</span></div>
             <div class="point" style="top:1800px; left:2200px;" onclick="selectLoc('training')"><span class="point-label">SPEC_TRAINING</span></div>
             <div class="point" style="top:2200px; left:1800px;" onclick="selectLoc('medical')"><span class="point-label">MEDICAL_BAY</span></div>
-            <div class="point" style="top:1900px; left:1750px;" onclick="selectLoc('lounge')"><span class="point-label">LOUNGE</span></div>
+            <div class="point" style="top:1900px; left:1750px;" onclick="selectLoc('lounge')"><span class="point-label">OFFICER_LOUNGE</span></div>
             <div class="point" style="top:2300px; left:2100px;" onclick="selectLoc('emergency')"><span class="point-label">STABILIZATION</span></div>
-            <div class="point" style="top:1700px; left:2000px;" onclick="selectLoc('garden')"><span class="point-label">SKY_GARDEN</span></div>
+            <div class="point" style="top:1250px; left:1950px;" onclick="selectLoc('garden')"><span class="point-label">SKY_GARDEN</span></div>
         </div>
 
         <div id="data-popup">
-            <div id="pop-title" style="font-size:22px; font-weight:900; margin-bottom:15px; color:var(--neon-blue);">DATA_SCAN</div>
-            <div id="pop-content" style="font-size:13px; line-height:1.7; color:rgba(255,255,255,0.8);">데이터 로딩 중...</div>
-            <button onclick="closePop()" style="margin-top:20px; width:auto; padding:5px 20px;">CLOSE</button>
+            <div id="pop-title" style="font-size:24px; font-weight:900; margin-bottom:15px; color:#fff; border-left: 5px solid #fff; padding-left:15px;">DATA_SCAN</div>
+            <div id="pop-content" style="font-size:14px; line-height:1.8; color:rgba(255,255,255,0.8); font-family:'Noto Sans KR';">데이터 로딩 중...</div>
+            <button onclick="closePop()" style="margin-top:25px; width:auto; padding:8px 25px;">CLOSE</button>
         </div>
     </div>
 
     <div class="side-panel">
         <div class="ui-section">
-            <div class="ui-label">PROTOCOL_GENERATOR</div>
+            <div class="ui-label">DEPLOYMENT_PROTOCOL</div>
+            <p class="ui-guide">지도에서 작전 구역을 먼저 선택하십시오.</p>
+            <div style="background:rgba(255,255,255,0.05); padding:15px; margin-bottom:15px; border-radius:4px;">
+                <label style="font-size:9px; color:rgba(255,255,255,0.4);">TARGET_AREA</label>
+                <div id="currentLoc" style="font-size:18px; font-weight:900; margin-top:5px;">NOT_SELECTED</div>
+            </div>
             <select id="mType">
-                <option value="emergency">코드 레드: 긴급 출동</option>
+                <option value="code_red">코드 레드: 긴급 출동</option>
                 <option value="training">특별통제 구역 훈련</option>
-                <option value="rest">라운지 휴식 및 상담</option>
+                <option value="guiding">집중 가이딩 세션</option>
             </select>
-            <button onclick="triggerAction()">EXECUTE_ACTION</button>
-            <textarea id="oocOut" readonly placeholder="AWAITING..." style="height:350px; font-size:11px; margin-top:10px;"></textarea>
+            <button onclick="triggerAction()">EXECUTE_OPS</button>
+            <textarea id="oocOut" readonly placeholder="AWAITING MISSION DATA..."></textarea>
             <div id="typing-cursor" class="cursor"></div>
         </div>
     </div>
 </div>
 
 <footer>
-    <div>© 2026 ARCH_AEGIS_V15.0</div>
+    <div>© 2026 ARCH_AEGIS_CONTROL_SYSTEM //v16.0_OVERDRIVE</div>
     <div id="clock">00:00:00</div>
 </footer>
 
@@ -200,99 +222,91 @@
     // 1. 데이터베이스 (로어북 데이터 반영)
     const loreDB = {
         locs: {
-            aegis: { t: "아이기스 (The Aegis)", c: "바다 위를 떠다니는 이동 요새 도시. 외부와 완벽히 차단된 최첨단 시설을 갖춘 능력자들의 안식처이자 거대한 감옥입니다." },
-            training: { t: "특별통제 훈련장", c: "지하 깊숙한 격리 시설. 특수 합금으로 제작되어 센티넬의 파괴적인 본능과 한계를 시험하는 투기장입니다. (애쉬의 주 훈련 장소)" },
-            medical: { t: "의무실 (Medical Bay)", c: "첨단 의료 장비와 속성 차폐막이 완비된 장소. 폭주 후유증 관리와 신캐 '퓨어쌤'의 주 활동지입니다." },
-            lounge: { t: "ARCH 라운지", c: "카페 형태의 휴식 공간. 속성 간 간섭을 최소화하도록 설계되었습니다." },
-            emergency: { t: "비상 안정화실", c: "가이딩 수치 80% 초과 시 강제 연행되는 격리실. 생존을 위한 구속 가이딩이 행해지는 공포와 수치심의 공간입니다." },
-            garden: { t: "하늘정원 (Sky Garden)", c: "반중력석으로 떠 있는 부유섬. 고대 문명 유산으로 추정되며 바람의 군주 이카로스의 테마 장소입니다." }
+            aegis: { t: "아이기스 (The Aegis)", c: "ARCH의 이동 지휘 요새. 바다 위를 떠다니며 전 세계 센티넬 작전을 통제합니다. 모든 작전의 심장부입니다." },
+            training: { t: "특별통제 훈련장", c: "지하 깊숙한 곳의 격리 시설. S급 이상의 파괴적인 능력을 시험하며, 파트너 간의 싱크로율을 실전 테스트하는 장소입니다." },
+            medical: { t: "의무 스테이션", c: "폭주 전조 증상을 보이는 센티넬을 격리 치료합니다. 최첨단 의료 장비와 속성 차폐막이 비치되어 있습니다." },
+            lounge: { t: "요원 전용 라운지", c: "긴장된 작전 후 휴식을 취하는 공간. 속성 간의 간섭을 차단하는 특수 필드가 깔려 있습니다." },
+            emergency: { t: "비상 안정화실", c: "가이딩 수치 80% 초과 시 강제 연행되는 격리실. 생존을 위한 구속 가이딩이 행해지는 공포의 공간입니다." },
+            garden: { t: "하늘 정원", c: "반중력 기술로 구현된 부유 녹지. 센티넬의 정신적 안정을 위해 고안된 이카로스의 테마 장소입니다." }
         },
         lore: {
-            fire: { t: "속성: 불", c: "센티넬: 최전선 섬멸의 핵심. 감정 기복이 심한 고위험 자산.<br>가이드: 아군 공격력을 극대화하는 기폭제 역할." },
-            water: { t: "속성: 물", c: "센티넬: 광범위 침식 및 장기전 특화. 가장 신뢰받는 방어 자원.<br>가이드: '걸어 다니는 의무실'. 필수적인 치유 존재." },
-            lightning: { t: "속성: 번개", c: "센티넬: 압도적인 속도의 암살 스페셜리스트.<br>가이드: 아군 반응 속도를 극한으로 끌어올리며 심정지 소생도 가능." },
+            fire: { t: "속성: 불", c: "센티넬: 최전선 섬멸의 핵심. 확실한 파괴력을 지녔으나 감정 기복이 심함.<br>가이드: 아군 공격력을 극대화하는 기폭제 역할." },
+            water: { t: "속성: 물", c: "센티넬: 고요하지만 모든 것을 침식하는 힘. 광범위 장악에 특화.<br>가이드: '걸어 다니는 의무실'. 치유와 정화 담당." },
+            lightning: { t: "속성: 번개", c: "센티넬: 인지하는 순간 끝나는 초고속 암살 스페셜리스트.<br>가이드: 반응 속도를 극한으로 끌어올리며 심정지 소생도 가능." },
             rank: { t: "직급 체계", c: "애콜라이트(신입) - 에이전트(주력) - 뱅가드(전설) - 아크 프리마(원소의 군주). 군주의 정체는 최고 기밀입니다." },
-            monster: { t: "위협 세력", c: "괴수(초자연적 파괴 존재), 폭주 개체(제어 상실한 센티넬), 타락 센티넬(실험 및 세뇌로 인간성 상실)." },
+            monster: { t: "위협 세력", c: "괴수(초자연적 파괴 존재), 폭주 개체(제어 상실한 센티넬), 타락 센티넬(세뇌로 인간성 상실)." },
             guiding: { t: "가이딩 프로토콜", c: "가이딩 중독: 쾌락에 대한 심리적 의존.<br>각인: 싱크로율 91% 이상 시 발생하는 영구적 정신 동조." }
         }
     };
 
-    // 2. 이펙트 제어 (사용자 요청 사항)
-    // 2-1. 클릭 파티클
+    let selectedLocKey = "";
+
+    // 2. 이펙트 및 애니메이션 시스템 (전체 B&W화)
+    // 2-1. 클릭 파티클 효과
     document.addEventListener("click", e => {
         for(let i=0; i<8; i++){
             const p = document.createElement("div");
-            p.style.position="fixed";
-            p.style.width="3px"; p.style.height="3px";
-            p.style.background="#00f2ff";
-            p.style.left=e.clientX+"px"; p.style.top=e.clientY+"px";
-            p.style.boxShadow="0 0 5px #00f2ff";
-            p.style.zIndex="10000"; p.style.pointerEvents="none";
+            p.style.position="fixed"; p.style.width="2px"; p.style.height="2px";
+            p.style.background="#fff"; p.style.left=e.clientX+"px"; p.style.top=e.clientY+"px";
+            p.style.boxShadow="0 0 8px #fff"; p.style.zIndex="10000"; p.style.pointerEvents="none";
             document.body.appendChild(p);
 
             const angle = Math.random() * Math.PI * 2;
-            const velocity = 2 + Math.random() * 5;
-            let vx = Math.cos(angle) * velocity;
-            let vy = Math.sin(angle) * velocity;
-            let opacity = 1;
+            const dist = 30 + Math.random() * 50;
+            const tx = Math.cos(angle) * dist;
+            const ty = Math.sin(angle) * dist;
 
-            const move = () => {
-                p.style.left = parseFloat(p.style.left) + vx + "px";
-                p.style.top = parseFloat(p.style.top) + vy + "px";
-                opacity -= 0.05; p.style.opacity = opacity;
-                if(opacity > 0) requestAnimationFrame(move); else p.remove();
-            };
-            move();
+            p.animate([
+                { transform: 'translate(0, 0)', opacity: 1 },
+                { transform: `translate(${tx}px, ${ty}px)`, opacity: 0 }
+            ], { duration: 600, easing: 'cubic-bezier(0,1,1,1)' }).onfinish = () => p.remove();
         }
     });
 
     // 2-2. 배경 스타더스트 (50개)
+    const canvasMap = document.getElementById('map-canvas');
     for(let i=0; i<50; i++){
         const dot = document.createElement("div");
-        dot.style.position="absolute";
-        dot.style.width="2px"; dot.style.height="2px";
-        dot.style.background="#00f2ff";
-        dot.style.top=Math.random()*100+"%";
-        dot.style.left=Math.random()*100+"%";
-        dot.style.opacity=0.3;
+        dot.style.position="absolute"; dot.style.width="2px"; dot.style.height="2px";
+        dot.style.background="rgba(255,255,255,0.3)";
+        dot.style.top=Math.random()*100+"%"; dot.style.left=Math.random()*100+"%";
         dot.style.pointerEvents="none";
-        document.body.appendChild(dot);
+        canvasMap.appendChild(dot);
     }
 
-    // 2-3. 유동적 맵 포인트 (5초 주기)
+    // 2-3. 포인트 유동적 위치 이동 (5초)
     setInterval(()=>{
         document.querySelectorAll('.point').forEach(p=>{
-            const currentX = parseFloat(p.style.left);
-            const currentY = parseFloat(p.style.top);
-            p.style.left = (currentX + (Math.random() - 0.5) * 40) + "px";
-            p.style.top = (currentY + (Math.random() - 0.5) * 40) + "px";
+            const cx = parseFloat(p.style.left);
+            const cy = parseFloat(p.style.top);
+            p.style.left = (cx + (Math.random()-0.5)*20) + "px";
+            p.style.top = (cy + (Math.random()-0.5)*20) + "px";
         });
     }, 5000);
 
-    // 3. UI 제어 기능
-    function triggerAction() {
-        const body = document.getElementById('body-main');
-        const map = document.getElementById('map-viewport');
-        
-        // 글리치 및 펄스 효과
-        body.classList.add('glitch-screen');
-        map.classList.add('map-pulse');
-        
-        setTimeout(() => {
-            body.classList.remove('glitch-screen');
-            map.classList.remove('map-pulse');
-            document.getElementById('oocOut').value = ">>> [SYSTEM] AEGIS_PROTOCOL_INITIALIZED\n>>> TARGET: RED_ZONE\n>>> WARNING: S-CLASS_MONSTER_DETECTED";
-        }, 400);
-    }
+    // 3. 지도 및 UI 제어 엔진
+    let s = 1, x = -1800, y = -1200, down = false, sx, sy;
+    const canvas = document.getElementById('map-canvas');
+    const viewport = document.getElementById('map-viewport');
+    
+    const update = () => canvas.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+    update();
+
+    viewport.onwheel = e => { e.preventDefault(); s += e.deltaY * -0.001; s = Math.min(Math.max(0.3, s), 2); update(); };
+    canvas.onmousedown = e => { down = true; sx = e.clientX - x; sy = e.clientY - y; viewport.style.cursor = 'grabbing'; };
+    window.onmouseup = () => { down = false; viewport.style.cursor = 'grab'; };
+    window.onmousemove = e => { if(!down) return; x = e.clientX - sx; y = e.clientY - sy; update(); };
 
     function selectLoc(id) {
+        selectedLocKey = id;
         const data = loreDB.locs[id];
+        document.getElementById('currentLoc').innerText = data.t;
         document.getElementById('pop-title').innerText = data.t;
         document.getElementById('pop-content').innerHTML = data.c;
         document.getElementById('data-popup').style.display = 'block';
     }
 
-    function openLore(id) {
+    function openArchive(id) {
         const data = loreDB.lore[id];
         document.getElementById('pop-title').innerText = data.t;
         document.getElementById('pop-content').innerHTML = data.c;
@@ -301,10 +315,71 @@
 
     function closePop() { document.getElementById('data-popup').style.display = 'none'; }
 
+    // 4. 세세하고 긴 OOC 생성기 (사용자 예시 반영)
+    function triggerAction() {
+        if(!selectedLocKey) { alert("지도에서 작전 구역을 먼저 선택하십시오."); return; }
+        
+        const b = document.getElementById('body-main');
+        const m = document.getElementById('map-viewport');
+        const sN = document.getElementById('name1').value || "SENTINEL";
+        const sI = document.getElementById('id1').value || "UNKNOWN_ID";
+        const gN = document.getElementById('name2').value || "GUIDE";
+        const gI = document.getElementById('id2').value || "UNKNOWN_ID";
+        
+        // 글리치 및 펄스 효과
+        b.classList.add('glitch-screen');
+        m.classList.add('map-pulse');
+        
+        setTimeout(() => {
+            b.classList.remove('glitch-screen');
+            m.classList.remove('map-pulse');
+            
+            const areaName = db.locs[selectedLocKey].t;
+            
+            const oocProtocols = {
+                code_red: `[ ARCH IMMEDIATE DEPLOYMENT ORDER ]
+CLASSIFICATION: A-CLASS
+CODE: NIGHTMARE_${Date.now().toString().slice(-4)}
+TO: AGENT ${sN.toUpperCase()} (ID: ${sI.toUpperCase()}), GUIDE ${gN.toUpperCase()} (ID: ${gI.toUpperCase()})
+FROM: CENTRAL CONTROL
+--------------------------------------------------
+[작전 개요]
+작전 구역 'ARCH ${areaName}' 인근 민간인 거주 구역에서 B급 센티넬의 제어 불능 폭주 사태 발생. 현 시간부로 해당 구역은 민간인 통제 및 대피 프로토콜에 돌입. 1차 투입된 현장 요원팀과의 통신 두절. 대상의 파장 패턴이 매우 불안정하며, 주변에 강력한 정신 오염 필드를 형성 중. 추가적인 인명 피해 및 2차 폭주 연쇄 반응이 우려되는 상황.
+
+[주요 목표]
+폭주 센티넬의 즉각적인 무력화 및 가이딩을 통한 안정화. 생존을 최우선으로 하되, 저항이 격렬할 시 '긴급 제압' 및 '강제 가이딩 프로토콜' 가동을 허가함.
+
+[세부 작전 구역]
+[ ARCH ${areaName} 전술 구역 B-4 702호 ]
+
+"T-MINUS 120 SECONDS. 가장 가까운 게이트로 즉시 출동할 것."
+--------------------------------------------------
+[⚠️ SYSTEM NOTICE] 위 프로토콜에 따라 RP 상황을 전개하십시오.`,
+
+                training: `[🔔ARCH NOTICE]
+TO. Sentinel '${sN}' / FROM. ARCH Central Integration Dept.
+SUBJECT: S급 가이드 '${gN}'와의 파트너십 심층 평가 테스트 알림
+--------------------------------------------------
+[목표] 파트너 간의 정신적 동기화 및 전술적 연계 능력의 한계점 측정.
+[장소] ARCH 특별통제 훈련장 (ARCH ${areaName}) 3번 시뮬레이션 룸
+[내용] 귀하와 파트너 '${gN}'는 지정된 시각에 훈련장에 출석하여, 가상 전장 환경에서 진행되는 '프로토콜: 에코'를 수행하게 됩니다. 본 테스트는 파트너십 데이터의 정밀 분석을 위해 극도의 정신적 부하를 유발할 수 있으며, 종료 후 전문 심리 상담이 연계됩니다.
+
+"지정된 일시에 훈련장에 출석하여 테스트 준비를 완료할 것."
+
+- 본 테스트는 파트너십 등급 재조정의 근거가 될 수 있으며, 불참 시 정당한 사유서 제출을 요함.
+--------------------------------------------------
+[⚠️ SYSTEM NOTICE] 위 노티스에 따라 RP 상황을 전개하십시오.`,
+
+                rest: `*[OOC: 상황 전개]\n\n대상 요원: ${sN} / ${gN}\n작전 위치: ARCH ${areaName} (라운지 및 상담실)\n\n상황: 격렬한 작전 후 복귀. ${sN}의 오염 수치가 불안정하여 긴급 가이딩 및 하모니 심리상담이 연계되었습니다. ${gN}는 파트너의 안정을 위해 라운지에서 함께 휴식을 취하거나 상담실로 이동해야 합니다.\n\n* 위 상황에 맞춰 RP를 시작하십시오.*`
+            };
+            
+            document.getElementById('oocOut').value = oocProtocols[document.getElementById('mType').value];
+        }, 400);
+    }
+
     // 시계 업데이트
     setInterval(() => {
-        const n = new Date();
-        document.getElementById('clock').innerText = n.toLocaleTimeString('en-GB');
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB');
     }, 1000);
 </script>
 
