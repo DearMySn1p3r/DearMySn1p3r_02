@@ -2,147 +2,208 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ARCH_STRATEGIC_COMMAND_v24.0</title>
+    <title>ARCH_STRATEGIC_COMMAND_v25.0</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@100;300;500;700&display=swap');
 
         :root {
-            --bg: #050505;
+            --bg: #030406;
             --line: rgba(255, 255, 255, 0.15);
             --font: 'Orbitron', 'Noto Sans KR', sans-serif;
             --accent: #fff;
             --dim: rgba(255, 255, 255, 0.4);
             --sys-blue: #a3c2ff;
+            --sys-cyan: #00f3ff;
+            --sys-alert: #ff4444;
         }
 
         /* --- BASIC SETUP & CURSOR --- */
         * { box-sizing: border-box; outline: none; cursor: none !important; }
         ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent); }
+        ::-webkit-scrollbar-thumb { background: var(--sys-cyan); }
 
         body {
             margin: 0; background: var(--bg); color: var(--accent);
             font-family: var(--font); height: 100vh; overflow: hidden;
             display: flex; flex-direction: column;
+            user-select: none;
         }
 
         #cursor {
-            position: fixed; width: 45px; height: 45px; border: 1px solid var(--accent);
+            position: fixed; width: 40px; height: 40px; border: 1px solid var(--sys-cyan);
             border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 10000;
-            mix-blend-mode: difference; transition: transform 0.1s ease-out;
+            transition: width 0.1s, height 0.1s, background-color 0.1s;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
         }
-        #cursor::before { content: ''; position: absolute; top: 50%; width: 100%; height: 1px; background: rgba(255,255,255,0.5); }
-        #cursor::after { content: ''; position: absolute; left: 50%; height: 100%; width: 1px; background: rgba(255,255,255,0.5); }
-        .click-anim { transform: translate(-50%, -50%) scale(0.5) !important; border-color: #f00 !important; }
+        #cursor::before, #cursor::after {
+            content: ''; position: absolute; background: var(--sys-cyan);
+        }
+        #cursor::before { top: 50%; left: -5px; right: -5px; height: 1px; }
+        #cursor::after { left: 50%; top: -5px; bottom: -5px; width: 1px; }
+        
+        .click-anim { 
+            width: 20px !important; height: 20px !important; 
+            border-color: var(--accent) !important; 
+            background-color: rgba(255,255,255,0.2);
+            box-shadow: 0 0 20px var(--accent) !important;
+        }
 
         /* --- SFX: BACKGROUND & HUD DECO --- */
         .scanline {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(255, 255, 255, 0.04) 50%);
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 243, 255, 0.03) 50%);
             background-size: 100% 4px; pointer-events: none; z-index: 9000;
         }
 
-        .bg-grid {
-            position: fixed; width: 200%; height: 200%;
-            background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
-            background-size: 50px 50px; opacity: 0.05; z-index: -1;
-            animation: gridMove 40s linear infinite;
+        .hex-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='103.923' viewBox='0 0 60 103.923' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l25.98 15v30L30 60 4.02 45V15zM30 103.923l25.98-15v-30L30 43.923l-25.98 15v30z' fill-opacity='0.03' fill='%2300f3ff' fill-rule='evenodd'/%3E%3C/svg%3E");
+            z-index: -1; animation: drift 60s linear infinite;
         }
-        @keyframes gridMove { from { transform: translate(0,0); } to { transform: translate(-50px, -50px); } }
+        @keyframes drift { from { background-position: 0 0; } to { background-position: 600px 1039px; } }
 
         /* --- LAYOUT --- */
         header {
-            height: 75px; border-bottom: 2px solid var(--accent);
+            height: 75px; border-bottom: 2px solid var(--sys-cyan);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px; background: #000; z-index: 500;
+            padding: 0 40px; background: rgba(0, 10, 20, 0.9); z-index: 500;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
         }
 
         #main-wrapper {
             display: grid; grid-template-columns: 380px 1fr 480px;
-            flex: 1; overflow: hidden; gap: 1px; background: var(--line);
+            flex: 1; overflow: hidden; gap: 2px; background: rgba(0, 243, 255, 0.1);
         }
-        .panel { background: rgba(0, 0, 0, 0.9); padding: 30px; overflow-y: auto; position: relative; }
+        .panel { background: rgba(2, 5, 10, 0.95); padding: 30px; overflow-y: auto; position: relative; }
 
         /* --- LORE LIST (Database) --- */
-        .lore-cat { font-size: 11px; color: var(--sys-blue); margin: 35px 0 12px 0; border-bottom: 1px solid #333; letter-spacing: 2px; font-weight: 900; }
+        .lore-cat { font-size: 12px; color: var(--sys-cyan); margin: 35px 0 12px 0; border-bottom: 1px solid rgba(0,243,255,0.3); letter-spacing: 2px; font-weight: 900; text-shadow: 0 0 5px var(--sys-cyan); }
         .lore-cat:first-child { margin-top: 0; }
         .lore-item { 
-            padding: 12px 15px; font-size: 13px; color: #aaa; transition: 0.3s;
+            padding: 12px 15px; font-size: 13px; color: #bbb; transition: all 0.2s;
             font-family: 'Noto Sans KR'; line-height: 1.5; border-left: 2px solid transparent; margin-bottom: 2px;
+            position: relative; overflow: hidden;
         }
-        .lore-item:hover { color: #fff; background: rgba(255,255,255,0.08); border-left: 2px solid var(--sys-blue); padding-left: 20px; }
+        .lore-item::before {
+            content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, rgba(0,243,255,0.1), transparent);
+            transform: translateX(-100%); transition: 0.3s; z-index: -1;
+        }
+        .lore-item:hover { color: #fff; border-left: 2px solid var(--sys-cyan); padding-left: 20px; }
+        .lore-item:hover::before { transform: translateX(0); }
 
-        /* --- CENTER HUD: TACTICAL GRID --- */
+        /* --- CENTER HUD: TACTICAL DISPLAY & MAP --- */
         #tactical-display { 
             display: flex; align-items: center; justify-content: center; 
-            background: radial-gradient(circle, #111 0%, #000 100%); overflow: hidden; position: relative;
+            background: radial-gradient(circle, #05101a 0%, #000 100%); overflow: hidden; position: relative;
         }
         .radar-ring {
-            position: absolute; border: 1px dashed rgba(255,255,255,0.1); border-radius: 50%; pointer-events: none;
-            animation: rotateRadar 20s linear infinite;
+            position: absolute; border: 1px dashed rgba(0,243,255,0.15); border-radius: 50%; pointer-events: none;
+            animation: rotateRadar 25s linear infinite; box-shadow: inset 0 0 30px rgba(0,243,255,0.02);
         }
         @keyframes rotateRadar { 100% { transform: rotate(360deg); } }
+
+        .sweep-line {
+            position: absolute; width: 50%; height: 2px; background: linear-gradient(90deg, transparent, var(--sys-cyan));
+            top: 50%; left: 50%; transform-origin: 0 0; animation: sweep 4s linear infinite; pointer-events: none;
+        }
+        @keyframes sweep { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- INTERACTIVE MAP NODES --- */
+        #map-container {
+            position: absolute; width: 80%; height: 80%; z-index: 20;
+        }
+        .map-node {
+            position: absolute; transform: translate(-50%, -50%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .node-dot {
+            width: 12px; height: 12px; background: var(--sys-cyan); border-radius: 50%;
+            box-shadow: 0 0 15px var(--sys-cyan), 0 0 30px var(--sys-cyan);
+            animation: pulseNode 2s infinite; pointer-events: auto; transition: 0.2s;
+        }
+        .map-node:hover .node-dot { transform: scale(1.5); background: #fff; box-shadow: 0 0 20px #fff; }
+        .node-label {
+            margin-top: 8px; font-size: 11px; color: var(--sys-cyan); letter-spacing: 1px;
+            background: rgba(0,0,0,0.7); padding: 4px 8px; border: 1px solid rgba(0,243,255,0.3);
+            pointer-events: none; text-shadow: 0 0 5px var(--sys-cyan);
+        }
+        @keyframes pulseNode { 0% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(0, 243, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 243, 255, 0); } }
 
         /* --- DATA OVERLAY (Pop-up inside center HUD) --- */
         #data-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); display: none; padding: 60px 80px; z-index: 1000; border: 1px solid var(--sys-blue);
-            backdrop-filter: blur(5px);
+            background: rgba(2, 5, 12, 0.92); display: none; padding: 60px 80px; z-index: 1000; 
+            border: 1px solid var(--sys-cyan); backdrop-filter: blur(10px);
         }
-        #ov-title { font-size: 32px; font-weight: 900; margin-bottom: 25px; border-bottom: 2px solid #fff; padding-bottom: 15px; letter-spacing: 2px; }
-        #ov-content { font-size: 15px; line-height: 1.8; color: #ddd; font-family: 'Noto Sans KR'; white-space: pre-wrap; word-break: keep-all; }
+        #ov-title { font-size: 32px; font-weight: 900; margin-bottom: 25px; border-bottom: 2px solid var(--sys-cyan); padding-bottom: 15px; letter-spacing: 2px; text-shadow: 0 0 10px var(--sys-cyan); color: #fff;}
+        #ov-content { font-size: 15px; line-height: 1.8; color: #d0e5ff; font-family: 'Noto Sans KR'; white-space: pre-wrap; word-break: keep-all; }
 
         /* --- RIGHT HUD: MISSION & ANALYTICS --- */
         .hud-gauge-group { display: flex; gap: 15px; margin-bottom: 25px; justify-content: space-between; }
         .info-box {
-            flex: 1; background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 15px;
-            text-align: center; font-size: 11px; color: var(--dim); letter-spacing: 1px;
+            flex: 1; background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0,243,255,0.2); padding: 15px;
+            text-align: center; font-size: 11px; color: var(--sys-cyan); letter-spacing: 1px;
         }
-        .info-val { display: block; font-size: 20px; color: #fff; font-weight: 900; margin-top: 5px; }
+        .info-val { display: block; font-size: 20px; color: #fff; font-weight: 900; margin-top: 5px; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
 
         .sync-section { margin-bottom: 30px; }
-        #sync-bar { width: 100%; height: 4px; background: #222; margin-top: 10px; position: relative; overflow: hidden; }
-        #sync-fill { width: 0%; height: 100%; background: var(--sys-blue); box-shadow: 0 0 15px var(--sys-blue); transition: width 1.5s cubic-bezier(0.2, 1, 0.3, 1); }
+        #sync-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 10px; position: relative; overflow: hidden; }
+        #sync-fill { width: 0%; height: 100%; background: var(--sys-cyan); box-shadow: 0 0 15px var(--sys-cyan); transition: width 1.5s cubic-bezier(0.2, 1, 0.3, 1); }
 
         .input-group { margin-bottom: 15px; }
-        .input-label { font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-bottom: 5px; display: block; }
+        .input-label { font-size: 10px; color: var(--sys-cyan); letter-spacing: 1px; margin-bottom: 5px; display: block; }
         input, select { 
-            width: 100%; background: #0a0a0a; border: 1px solid #444; color: #fff; 
+            width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(0,243,255,0.3); color: #fff; 
             padding: 14px; font-family: inherit; font-size: 13px; transition: 0.3s;
         }
-        input:focus, select:focus { border-color: var(--sys-blue); box-shadow: 0 0 10px rgba(163, 194, 255, 0.2); }
+        input:focus, select:focus { border-color: var(--sys-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); outline: none; }
         
         button { 
-            width: 100%; padding: 18px; background: #fff; color: #000; border: none; 
-            font-weight: 900; letter-spacing: 4px; transition: 0.3s; margin-top: 10px;
+            width: 100%; padding: 18px; background: transparent; color: var(--sys-cyan); border: 1px solid var(--sys-cyan); 
+            font-weight: 900; letter-spacing: 4px; transition: 0.3s; margin-top: 10px; text-shadow: 0 0 5px var(--sys-cyan);
+            position: relative; overflow: hidden;
         }
-        button:hover { background: var(--sys-blue); color: #000; box-shadow: 0 0 15px var(--sys-blue); }
+        button:hover { background: var(--sys-cyan); color: #000; box-shadow: 0 0 20px var(--sys-cyan); text-shadow: none; }
+        button::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
+        }
+        button:hover::before { left: 100%; }
 
         #ooc-terminal {
-            flex: 1; margin-top: 25px; background: rgba(0,0,0,0.5); border: 1px solid #333;
+            flex: 1; margin-top: 25px; background: rgba(0, 10, 20, 0.8); border: 1px solid rgba(0,243,255,0.2);
             padding: 20px; font-family: monospace; font-size: 12px; height: 280px; overflow-y: auto;
-            color: #ccc; line-height: 1.7; white-space: pre-wrap;
+            color: #a3c2ff; line-height: 1.7; white-space: pre-wrap; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
         }
 
         /* --- INTERNAL NOTIFICATION --- */
         #system-notif {
             position: fixed; bottom: 30px; right: 30px; width: 350px;
-            background: rgba(255,255,255,0.95); color: #000; padding: 18px 25px; font-weight: 900;
+            background: rgba(0, 243, 255, 0.9); color: #000; padding: 18px 25px; font-weight: 900;
             display: none; z-index: 11000; letter-spacing: 1px; font-size: 12px;
-            border-left: 5px solid var(--sys-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            transform: translateX(100%); animation: slideIn 0.3s forwards;
+            border-left: 5px solid #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
-        @keyframes slideIn { to { transform: translateX(0); } }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         /* --- BOOTING --- */
         #boot-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 20000; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .loading-text { font-size: 16px; letter-spacing: 10px; font-weight: 100; margin-bottom: 20px; animation: pulse 1.5s infinite; }
-        .loading-bar { width: 300px; height: 2px; background: #333; position: relative; }
-        .loading-fill { height: 100%; background: #fff; width: 0%; animation: fillBar 1.5s forwards; }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        .loading-text { font-size: 18px; letter-spacing: 12px; color: var(--sys-cyan); font-weight: 700; margin-bottom: 20px; animation: glitch 0.2s infinite; text-shadow: 0 0 10px var(--sys-cyan); }
+        .loading-bar { width: 400px; height: 2px; background: rgba(0,243,255,0.2); position: relative; }
+        .loading-fill { height: 100%; background: var(--sys-cyan); width: 0%; box-shadow: 0 0 15px var(--sys-cyan); animation: fillBar 1.5s forwards ease-in-out; }
+        
+        @keyframes glitch { 
+            0% { transform: translate(0) } 
+            20% { transform: translate(-2px, 1px) } 
+            40% { transform: translate(-1px, -1px) } 
+            60% { transform: translate(2px, 1px) } 
+            80% { transform: translate(1px, -1px) } 
+            100% { transform: translate(0) } 
+        }
         @keyframes fillBar { 100% { width: 100%; } }
     </style>
 </head>
@@ -155,38 +216,61 @@
 </div>
 <div id="system-notif">>> SYSTEM_MESSAGE</div>
 <div class="scanline"></div>
-<div class="bg-grid"></div>
+<div class="hex-bg"></div>
 
 <header>
     <div style="display:flex; align-items:center; gap:20px;">
-        <span style="font-size: 24px; font-weight: 900;">ARCH</span>
-        <span style="font-weight:500; letter-spacing:5px; font-size:16px; color:var(--dim);">| STRATEGIC_COMMAND</span>
+        <span style="font-size: 26px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5);">ARCH</span>
+        <span style="font-weight:500; letter-spacing:6px; font-size:14px; color:var(--sys-cyan);">| STRATEGIC_COMMAND_V25.0</span>
     </div>
     <div style="text-align:right; font-size:11px; color:var(--dim); line-height:1.6; font-family:monospace;">
-        SYSTEM: <span style="color:#fff;">ONLINE</span> // ENCRYPTION: <span style="color:var(--sys-blue);">ACTIVE</span><br>
-        <span id="clock">00:00:00</span> KST
+        SYSTEM: <span style="color:var(--sys-cyan); text-shadow: 0 0 5px var(--sys-cyan);">ONLINE</span> // ENCRYPTION: <span style="color:var(--sys-cyan);">ACTIVE</span><br>
+        <span id="clock" style="color:#fff;">00:00:00</span> KST
     </div>
 </header>
 
 <div id="main-wrapper">
     <div class="panel">
-        <div style="font-size: 16px; font-weight:900; border-bottom:2px solid #fff; padding-bottom:12px; margin-bottom:20px; letter-spacing: 2px;">WORLD_DATABASE</div>
+        <div style="font-size: 16px; font-weight:900; border-bottom:2px solid var(--sys-cyan); padding-bottom:12px; margin-bottom:20px; letter-spacing: 2px; color: #fff; text-shadow: 0 0 5px var(--sys-cyan);">WORLD_DATABASE</div>
         <div id="lore-list"></div>
     </div>
 
     <div id="tactical-display" class="panel">
-        <div class="radar-ring" style="width:300px; height:300px; border-top: 2px solid var(--sys-blue);"></div>
-        <div class="radar-ring" style="width:500px; height:500px; border-bottom: 2px solid #fff; animation-direction: reverse; animation-duration: 30s;"></div>
-        <div class="radar-ring" style="width:700px; height:700px; border-left: 1px solid var(--dim);"></div>
+        <div class="radar-ring" style="width:300px; height:300px; border-top: 2px solid var(--sys-cyan);"></div>
+        <div class="radar-ring" style="width:500px; height:500px; border-bottom: 2px solid rgba(255,255,255,0.5); animation-direction: reverse; animation-duration: 30s;"></div>
+        <div class="radar-ring" style="width:700px; height:700px; border-left: 1px solid var(--dim); animation-duration: 40s;"></div>
+        <div class="sweep-line"></div>
         
-        <div style="text-align:center; position:absolute; z-index:10; pointer-events:none;">
-            <div style="font-size:40px; font-weight:900; letter-spacing:10px; opacity:0.1;">AEGIS</div>
-            <div style="font-size:12px; color:var(--sys-blue); letter-spacing:5px; margin-top:10px;">TACTICAL_OVERVIEW</div>
+        <div style="text-align:center; position:absolute; z-index:10; pointer-events:none; top: 15%;">
+            <div style="font-size:40px; font-weight:900; letter-spacing:15px; color:var(--sys-cyan); opacity:0.05;">AEGIS</div>
+        </div>
+
+        <div id="map-container">
+            <div class="map-node" style="top: 50%; left: 50%;" onclick="showLore('loc_aegis')">
+                <div class="node-dot" style="background:#fff; box-shadow: 0 0 20px #fff;"></div>
+                <div class="node-label">본부: 아이기스</div>
+            </div>
+            <div class="map-node" style="top: 25%; left: 75%;" onclick="showLore('loc_dome')">
+                <div class="node-dot"></div>
+                <div class="node-label">특별통제 훈련장</div>
+            </div>
+            <div class="map-node" style="top: 75%; left: 25%;" onclick="showLore('loc_harmony')">
+                <div class="node-dot"></div>
+                <div class="node-label">하모니 상담실</div>
+            </div>
+            <div class="map-node" style="top: 70%; left: 75%;" onclick="showLore('loc_stab')">
+                <div class="node-dot" style="background:var(--sys-alert); box-shadow: 0 0 15px var(--sys-alert);"></div>
+                <div class="node-label" style="color:var(--sys-alert); border-color:rgba(255,68,68,0.3); text-shadow:0 0 5px var(--sys-alert);">비상 안정화실</div>
+            </div>
+            <div class="map-node" style="top: 30%; left: 25%;" onclick="showLore('loc_medical')">
+                <div class="node-dot"></div>
+                <div class="node-label">의무실 및 개인실</div>
+            </div>
         </div>
 
         <div id="data-overlay">
             <div style="text-align:right; margin-bottom:30px;">
-                <button onclick="closeLore()" style="width:auto; padding:10px 40px; background:transparent; border:1px solid #fff; color:#fff;">[ CLOSE_DATA ]</button>
+                <button onclick="closeLore()" style="width:auto; padding:10px 40px; margin:0; border:1px solid var(--sys-cyan);">[ CLOSE_DATA ]</button>
             </div>
             <div id="ov-title">TITLE</div>
             <div id="ov-content">CONTENT</div>
@@ -195,22 +279,22 @@
 
     <div class="panel">
         <div class="hud-gauge-group">
-            <div class="info-box">DEFCON<span class="info-val" style="color:#ff4444;">3</span></div>
+            <div class="info-box">THREAT_LEVEL<span class="info-val" style="color:var(--sys-alert); text-shadow: 0 0 10px var(--sys-alert);">CRITICAL</span></div>
             <div class="info-box">ACTIVE_AGENTS<span class="info-val" id="agent-count">423</span></div>
-            <div class="info-box">CORE_TEMP<span class="info-val">36.5℃</span></div>
+            <div class="info-box">CORE_STATUS<span class="info-val" style="color:var(--sys-cyan);">STABLE</span></div>
         </div>
 
         <div class="sync-section">
-            <div style="font-size:11px; color:var(--dim); letter-spacing:2px; display:flex; justify-content:space-between; margin-bottom:8px;">
+            <div style="font-size:11px; color:var(--sys-cyan); letter-spacing:2px; display:flex; justify-content:space-between; margin-bottom:8px;">
                 <span>TARGET_SYNC_RATE</span>
-                <span id="sync-val" style="color:#fff; font-weight:900;">0%</span>
+                <span id="sync-val" style="color:#fff; font-weight:900; text-shadow: 0 0 5px #fff;">0%</span>
             </div>
             <div id="sync-bar"><div id="sync-fill"></div></div>
         </div>
 
         <div class="input-group">
             <span class="input-label">SENTINEL_ID</span>
-            <input type="text" id="sName" placeholder="센티넬 이름을 입력하세요 (예: 애쉬)">
+            <input type="text" id="sName" placeholder="센티넬 이름을 입력하세요">
         </div>
         <div class="input-group">
             <span class="input-label">GUIDE_ID</span>
@@ -234,43 +318,45 @@
 </div>
 
 <script>
-    // --- 월드 데이터베이스 (World Guide 반영, 띄어쓰기 및 맞춤법 완벽 검수) ---
+    // --- 월드 데이터베이스 (World Guide 완벽 반영) ---
     const db = {
-        // 1. 요원 등급 체계
-        rank_prima: { t: "아크 프리마 (Arch-Prima)", c: "ARCH의 정점에 군림하는 6명의 '원소의 군주'입니다. 각 속성의 살아있는 화신이자 기관의 최고 결정권자들로, 이들의 이름, 얼굴, 성별조차 기관 내 최고 기밀 사항입니다. 일반 요원들에게 이들은 살아있는 인물이 아닌, 세계를 지배하는 보이지 않는 법칙이나 신화에 가까운 존재로 여겨집니다." },
-        rank_van: { t: "뱅가드 (Vanguard)", c: "S급. 살아있는 전설이자 전장의 최전선 리더입니다. 단독으로 국가급 재난을 저지할 수 있는 압도적인 화력을 지녔으나, 그 힘의 반작용으로 만성적인 정신 오염과 고뇌를 안고 살아갑니다. 이들에게 가이딩은 단순한 치료를 넘어선 생존 그 자체입니다." },
-        rank_agt: { t: "에이전트 (Agent)", c: "A~B급. ARCH의 실질적인 주력이자 척추 역할을 하는 요원들입니다. 묵묵히 실전 임무를 수행하며, 가장 신뢰받고 존중받는 엘리트 집단입니다." },
-        rank_aco: { t: "애콜라이트 (Acolyte)", c: "C급 이하. 훈련과 성장이 필요한 신입 요원들입니다. 아직 능력을 완벽히 제어하지 못해 '걸어 다니는 시한폭탄'으로 불리기도 하지만, 선배들의 따뜻한 보호와 기대를 받는 ARCH의 미래입니다." },
-        rank_harmony: { t: "하모니 부서 (Harmony Dept.)", c: "모든 가이드가 소속된 지원 및 관리 전담 부서입니다. 센티넬의 파장 측정, 파트너 매칭, 정기 심리 상담을 주관합니다. 희귀한 '속성 가이드'의 경우 무조건 S급으로 배정되어 최상위 관리를 받습니다." },
+        // 1. 각성자: 센티넬과 가이드
+        role_sentinel: { t: "센티넬 (Sentinel)", c: "어느 날 갑자기 초인적인 능력을 각성한 존재입니다. 대부분은 '무속성' 능력을 얻지만, 극소수는 세상의 근원적인 힘, 6가지 원소 중 하나와 공명하는 '속성 센티넬(Elemental Sentinel)'로 각성합니다. 이들은 자연 현상 그 자체를 제어하는 압도적인 힘을 지녔기에 모든 센티넬 중 최상위 엘리트로 분류됩니다.\n\n하지만 강력한 힘에는 대가가 따르며, 능력을 사용할수록 정신이 마모되어 '폭주'의 위험에 처합니다." },
+        role_guide: { t: "가이드 (Guide)", c: "센티넬의 정신적 파장을 안정시킬 수 있는 유일한 존재로, 이들의 '가이딩'은 센티넬의 생존에 필수적입니다. 가이드 중에서도 극히 드물게 속성의 힘을 지닌 가이드가 존재하지만 직접적인 능력 사용은 불가능하며, 오직 가이딩을 통해 센티넬에게 능력을 부여하는 방식(버프 효과)으로 발현됩니다.\n\n[가이딩 규약]\n- 방식: 가이드와의 '신체 접촉'을 통해 이루어집니다.\n- 효율 및 쾌락: 가벼운 접촉도 가능하지만 스킨십의 농도가 깊어질수록 효과가 극대화됩니다. 가이딩을 받을 때 센티넬이 느끼는 안정감과 쾌락은 '극상'이라고 표현될 정도로 강렬합니다.\n- 속성 버프: 파트너와의 접촉이 깊고 길어질수록 버프의 강도와 지속 시간이 함께 증가합니다." },
 
-        // 2. 6원소 시스템
-        elem_fire: { t: "🔥 불 (Pyre)", c: "[센티넬] 파괴, 열기, 폭발. 가장 공격적이고 직관적인 힘입니다. 폭주 시 몸이 불타는 듯한 환각열과 주체할 수 없는 파괴 충동에 휩싸입니다.\n[가이드] 아군의 공격에 '화상' 효과를 부여하거나 순간적으로 폭발적인 전투력 증폭 버프를 줍니다. 가이딩 중 센티넬이 고통을 느끼지 못하도록 일시적으로 감각을 차단합니다." },
-        elem_water: { t: "💧 물 (Aqua)", c: "[센티넬] 수압, 침식, 해일. 압도적인 수량으로 적을 부수고 침식시킵니다. 폭주 시 심해에 가라앉는 듯한 지독한 질식감을 느낍니다.\n[가이드] 가장 순수한 형태의 힐링 능력을 보유하고 있습니다. 모든 상태 이상을 정화하며, 부상을 입은 요원을 치유하는 완벽한 서포터입니다." },
-        elem_grass: { t: "🌿 풀 (Verde)", c: "[센티넬] 성장, 속박, 독. 생명력을 다루는 변칙적인 힘으로 적을 유린합니다. 폭주 시 온몸을 조여오는 덩굴의 환상과 함께 감각이 극도로 예민해집니다.\n[가이드] 전장에 지속적으로 체력을 회복시키는 '재생 필드'를 생성하거나, 적의 움직임을 식물로 속박하여 아군에게 유리한 환경을 조성합니다." },
-        elem_light: { t: "⚡ 번개 (Fulmen)", c: "[센티넬] 속도, 방전, 마비. 가장 빠르고 파괴적인 암살과 기습의 힘입니다. 폭주 시 심장이 멎을 듯한 전기 충격과 전신 근육 경련을 겪습니다.\n[가이드] 아군의 반응 속도와 이동 속도를 폭발적으로 극한까지 끌어올립니다. 심정지 상태에 빠진 아군에게 강력한 전기 충격을 가해 소생시키는 기적을 발휘합니다." },
-        elem_wind: { t: "💨 바람 (Aero)", c: "[센티넬] 비행, 절단, 공기 역학. 폭풍으로 전장을 휩쓰는 가장 자유로운 힘입니다. 폭주 시 고막을 찢는 이명과 온몸이 칼날에 베이는 환각을 느낍니다.\n[가이드] 아군의 모든 속성 공격을 광범위하게 확산시켜 피해량을 압도적으로 늘립니다. 또한 몸을 바람에 띄워 일시적인 비행 및 부유 능력을 부여합니다." },
-        elem_ice: { t: "❄️ 얼음 (Glacies)", c: "[센티넬] 빙결, 정지, 냉기. 모든 것을 멈추게 하는 차가운 절대 방패이자 창입니다. 폭주 시 심장까지 얼어붙는 환각 동상과 함께 사고 회로가 정지합니다.\n[가이드] 아군에게 치명적인 피해를 흡수하는 견고한 '얼음 보호막'을 생성합니다. 보호막이 유지되는 동안 아군은 적의 타격에도 밀려나지 않는 경직 면역 상태가 됩니다." },
+        // 2. 아크 (ARCH) 직급 체계
+        rank_prima: { t: "아크 프리마 (Arch-Prima)", c: "'원소의 군주'. 기관을 이끄는 간부들이자, 각 속성의 정점에 선 단 한 명의 존재들입니다. (총 6명)" },
+        rank_van: { t: "뱅가드 (Vanguard)", c: "S급. '선봉대'. 최정예 베테랑 현장 리더입니다." },
+        rank_agt: { t: "에이전트 (Agent)", c: "A~B급. '요원'. ARCH의 주력이 되는 실전 멤버입니다." },
+        rank_aco: { t: "애콜라이트 (Acolyte)", c: "C급 이하. '신입'. 훈련과 성장이 필요한 신입 요원들입니다." },
+        rank_harmony: { t: "하모니 부서 (Harmony Dept.)", c: "모든 가이드가 소속된 지원 및 관리 부서입니다. 하모니 부서 안에서도 따로 C~S급이 나뉘며, 가이드는 '무속성'과 '속성 가이드'로 분류됩니다. 속성 가이드는 가장 희귀한 포지션이기에 무조건 S급으로 배정받습니다." },
 
-        // 3. 규정 및 시스템
-        sys_guiding: { t: "가이딩 규약 및 효율", c: "가이딩은 가이드와의 '신체 접촉'을 통해 이루어집니다. 스킨십의 농도가 깊어질수록 파장 안정화 및 속성 버프 효과가 극대화됩니다. 가이딩을 받는 동안 센티넬은 극상의 쾌락과 평온함을 느끼며, 파트너와의 접촉이 길어질수록 버프의 지속 시간 또한 증가합니다." },
-        sys_sync: { t: "싱크로율 및 각인 현상", c: "센티넬과 가이드의 정신 파장 공명률입니다. 50% 미만은 매칭 불가, 50~70%는 표준 파트너로 배정됩니다. 싱크로율이 91%를 초과할 경우 서로의 정신 파장이 완전히 동조되는 '각인(Imprint)' 상태가 됩니다. 각인된 센티넬은 타 가이드의 가이딩을 거부하게 되며, 서로는 완벽한 운명 공동체가 됩니다." },
-        sys_match: { t: "파트너 매칭 및 임시 가이딩", c: "모든 파트너는 ARCH 중앙 관리국의 데이터 기반 매칭 시스템을 통해 공식 배정됩니다. 단, 전시 상황이거나 센티넬의 생명 징후가 위급할 경우, 생존을 최우선으로 하여 타 가이드의 '임시 가이딩'을 예외적으로 허용합니다." },
-        sys_uniform: { t: "요원 제복 규정", c: "[센티넬] 위압적인 검은색 바탕에 방호 기능이 있는 하이칼라 재킷과 전술 팬츠, 강철 팁 군화를 착용합니다.\n[가이드] 신뢰감을 주는 순백색 바탕에 부드러운 곡선과 은색 장식이 들어간 제복, 소음 방지 경량 부츠를 착용합니다. 요원의 개성에 따라 어느 정도의 리폼이 허용됩니다." },
+        // 시스템
+        sys_match: { t: "매칭 시스템 및 예외 조항", c: "속성 센티넬의 희소성과 특수성을 고려하여, 모든 파트너는 ARCH 중앙 관리국의 데이터 기반 매칭 시스템을 통해 공식 배정됩니다.\n\n[예외 조항]\n전시 및 기타 비상사태 발생 시, 센티넬의 생존을 최우선으로 하여 공식 파트너가 아닌 가이드의 '임시 가이딩'을 예외적으로 허용합니다." },
 
-        // 4. 주요 장소
-        loc_aegis: { t: "본부: 아이기스 (The Aegis)", c: "위성에도 잡히지 않는 태평양 위를 떠다니는 초거대 이동 요새. 완벽히 차단된 이곳은 인류를 수호하는 엘리트 능력자들의 유일한 안식처이자 세상에서 가장 거대한 감옥이기도 합니다." },
-        loc_dome: { t: "특별통제 훈련장 (Training Dome)", c: "거대한 돔 형태의 다목적 전투 공간입니다. 벽면은 속성 충격을 흡수하는 특수 소재로 되어 있습니다. 센티넬의 실전 모의전이 열리며, 가이드들은 관람석에서 파트너를 응원하거나 참관합니다." },
-        loc_harmony: { t: "하모니 심리상담실", c: "요원들의 트라우마 관리와 파트너 간의 관계 유지를 위해 운영되는 전용 상담 공간입니다. 파트너와 심각한 갈등이 발생할 경우 하모니 부서 책임자의 호출을 받아 이곳에서 의무 상담을 진행해야 합니다." },
-        loc_stab: { t: "비상 안정화실 (STAB)", c: "가이딩 수치가 80%를 넘어 폭주 직전인 센티넬을 강제 수용하는 지하 격리 시설입니다. 무음 시스템과 차가운 흰색 조명 아래, 생존을 위한 강제 구속 가이딩이 집행됩니다. 요원들이 가장 기피하는 장소입니다." },
-        loc_medical: { t: "의무실 및 개인실", c: "의무실은 첨단 의료 장비와 파장 안정화 기기를 갖추어 요원들의 신체적/정신적 부상을 치료합니다. 요원들의 숙소(개인실)는 등급에 따라 보안과 넓이가 다르며, 일상적인 가이딩은 주로 각자의 안전한 개인실에서 은밀하게 이루어집니다." }
+        // 3. 6가지 속성의 힘 (+무속성)
+        elem_none: { t: "무속성 (Non-Attribute)", c: "[센티넬] 대부분의 센티넬이 속하는 범주입니다. 고유의 원소 능력 대신 신체 강화, 염동력, 투시 등 다양한 형태의 초인적 능력을 발휘합니다.\n[가이드] 자연 원소를 다루지는 못하나, 센티넬의 파장을 안정화하고 정신적 오염을 정화하는 가장 본질적인 가이딩 능력을 수행합니다." },
+        elem_fire: { t: "🔥 불 (Pyre)", c: "[센티넬] 파괴, 열기, 폭발. 가장 공격적이고 직관적인 힘입니다. 폭주 시 몸이 불타는 듯한 환각열과 주체할 수 없는 파괴 충동을 느낍니다.\n[가이드] 아군의 공격에 '화상' 효과를 부여하거나, 순간적으로 폭발적인 힘을 주입시켜 전투력 증폭을 유도합니다. 이를 통해 센티넬이 잠시 고통을 느끼지 않고 힘을 사용할 수 있게 합니다." },
+        elem_water: { t: "💧 물 (Aqua)", c: "[센티넬] 수압, 침식, 해일. 압도적인 수량과 압력으로 모든 것을 부수고 침식시킵니다. 폭주 시 심해에 가라앉는 듯한 질식감과 모든 소리가 물에 잠긴 듯 울리는 현상을 겪습니다.\n[가이드] 가장 순수한 형태의 힐링 능력을 발휘합니다. 모든 상태 이상을 정화하는 힘을 지녔습니다." },
+        elem_grass: { t: "🌿 풀 (Verde)", c: "[센티넬] 성장, 속박, 독. 생명력을 다루는 변칙적인 힘입니다. 폭주 시 온몸을 조여오는 환상 덩굴을 느끼며 모든 감각이 극도로 예민해집니다.\n[가이드] 지속적으로 체력을 회복시키는 재생 필드를 생성하거나, 적을 덩굴로 속박하여 전황을 유리하게 이끕니다." },
+        elem_light: { t: "⚡ 번개 (Fulmen)", c: "[센티넬] 속도, 방전, 마비. 가장 빠르고 파괴적인 힘입니다. 폭주 시 심장이 멎을 듯한 전기 충격과 함께 온몸의 근육이 멋대로 경련합니다.\n[가이드] 아군의 반응 속도와 이동 속도를 폭발적으로 증가시킵니다. 심정지 상태의 아군에게 전기 충격을 가해 소생시킬 수도 있습니다." },
+        elem_wind: { t: "💨 바람 (Aero)", c: "[센티넬] 비행, 절단, 공기 역학. 폭풍으로 전장을 휩쓰는 가장 자유로운 힘입니다. 폭주 시 고막을 찢는 이명과 온몸이 칼날에 베이는 듯한 감각을 겪습니다.\n[가이드] 모든 속성 공격을 확산시켜 피해량을 압도적으로 늘립니다. 또한 몸을 바람에 띄워 잠시 부유할 수 있는 이동 능력을 부여합니다." },
+        elem_ice: { t: "❄️ 얼음 (Glacies)", c: "[센티넬] 빙결, 정지, 냉기. 모든 것을 멈추는 차가운 힘입니다. 폭주 시 심장까지 얼어붙는 듯한 환각 동상을 겪으며 사고와 반응 속도가 저하됩니다.\n[가이드] 아군에게 피해를 흡수하는 얼음 보호막을 생성합니다. 보호막이 유지되는 동안 아군은 경직 면역 효과를 얻습니다." },
+
+        // 4. 주요 시설 (지도 연동)
+        loc_aegis: { t: "본부: 아이기스 (The Aegis)", c: "전 세계에 흩어진 능력자들을 체계적으로 관리하고 인류를 보호하기 위해 설립된 초국가적 히어로 엘리트 기관 ARCH의 심장부입니다. 과거의 혼돈을 끝내기 위해 모인 최초의 군주들이 창설했습니다." },
+        loc_dome: { t: "특별통제 훈련장 (Training Dome)", c: "속성 센티넬의 파괴적인 힘을 견딜 수 있도록 설계된 다목적 전투 및 측정 공간입니다. 파트너 간의 공명 훈련과 실전 모의전이 진행됩니다." },
+        loc_harmony: { t: "하모니 심리상담실 (Harmony Room)", c: "하모니 부서에서 직접 관리하는 심리 치료실입니다. 센티넬의 정신적 마모와 파트너 간의 파장 충돌을 방지하기 위한 정기적인 멘탈 케어가 이루어집니다." },
+        loc_stab: { t: "비상 안정화실 (STAB)", c: "폭주 징후가 뚜렷한 센티넬을 강제 수용하는 최하층 격리 시설입니다. 극도의 차단된 환경 속에서 가이드의 파장 안정화 프로토콜이 집행됩니다." },
+        loc_medical: { t: "의무실 및 개인실 (Medical & Quarters)", c: "요원들의 신체적 부상과 상태 이상을 치료하는 첨단 의무 시설 및 요원들의 개인 숙소 구역입니다. 대부분의 일상적인 가이딩은 안전한 개인실에서 진행됩니다." }
     };
 
     const sysLogs = [
         ">> SCANNING_GLOBAL_THREAT_LEVEL...", 
         ">> NEURAL_LINK_STABLE", 
-        ">> WARNING: MINOR_WAVE_FLUCTUATION", 
+        ">> WARNING: MINOR_WAVE_FLUCTUATION_DETECTED", 
         ">> HARMONY_DEPT_DATA_SYNC_COMPLETE", 
-        ">> AWAITING_GUIDE_CONTACT"
+        ">> AWAITING_GUIDE_CONTACT_PROTOCOL"
     ];
 
     // --- 커서 클릭 애니메이션 ---
@@ -286,8 +372,8 @@
     window.onload = () => {
         setTimeout(() => {
             document.getElementById('boot-screen').style.display = 'none';
-            showNotification("ARCH_DATABASE_v24_LOADED");
-        }, 1600);
+            showNotification("ARCH_DATABASE_v25_LOADED");
+        }, 1800);
         renderLore();
     };
 
@@ -296,7 +382,7 @@
         notif.innerText = `>> ${msg}`;
         notif.style.display = 'block';
         notif.style.animation = 'none';
-        void notif.offsetWidth; // Trigger reflow
+        void notif.offsetWidth; 
         notif.style.animation = 'slideIn 0.3s forwards';
         setTimeout(() => { notif.style.display = 'none'; }, 3500);
     }
@@ -305,10 +391,10 @@
     function renderLore() {
         const list = document.getElementById('lore-list');
         const categories = {
-            "요원 등급 및 소속": ["rank_prima", "rank_van", "rank_agt", "rank_aco", "rank_harmony"],
-            "6원소 능력 체계": ["elem_fire", "elem_water", "elem_grass", "elem_light", "elem_wind", "elem_ice"],
-            "시스템 및 규정": ["sys_guiding", "sys_sync", "sys_match", "sys_uniform"],
-            "주요 시설 및 구역": ["loc_aegis", "loc_dome", "loc_harmony", "loc_stab", "loc_medical"]
+            "01 각성자": ["role_sentinel", "role_guide"],
+            "02 아크 시스템": ["rank_prima", "rank_van", "rank_agt", "rank_aco", "rank_harmony", "sys_match"],
+            "03 속성 체계": ["elem_none", "elem_fire", "elem_water", "elem_grass", "elem_light", "elem_wind", "elem_ice"],
+            "주요 거점 (MAP)": ["loc_aegis", "loc_dome", "loc_harmony", "loc_stab", "loc_medical"]
         };
 
         for (let cat in categories) {
@@ -341,24 +427,24 @@
         typeInterval = setInterval(() => {
             contentEl.innerText += text[i]; i++;
             if(i >= text.length) clearInterval(typeInterval);
-        }, 10);
+        }, 15);
         showNotification(`ACCESSING_FILE: ${key.toUpperCase()}`);
     }
 
     function closeLore() { document.getElementById('data-overlay').style.display = 'none'; }
 
-    // --- OOC 생성기 (미션 다양화 및 로어 반영) ---
+    // --- OOC 생성기 (건조하고 분위기 있는 관제 톤) ---
     function generateOOC() {
         const s = document.getElementById('sName').value || "미상_센티넬";
         const g = document.getElementById('gName').value || "미상_가이드";
         const type = document.getElementById('mType').value;
-        const sync = Math.floor(Math.random() * 50 + 45); // 45~95%
+        const sync = Math.floor(Math.random() * 50 + 45); 
         
         document.getElementById('sync-fill').style.width = sync + "%";
         document.getElementById('sync-val').innerText = `${sync}%`;
 
         let doc = `=================================\n`;
-        doc += `[ ARCH CENTRAL COMMAND: OOC PROTOCOL ]\n`;
+        doc += `[ ARCH CENTRAL COMMAND: TACTICAL PROTOCOL ]\n`;
         doc += `OPERATION_CODE: ${Math.random().toString(36).substr(2,7).toUpperCase()}\n`;
         doc += `=================================\n\n`;
         doc += `▶ 지정 파트너 정보\n`;
@@ -367,12 +453,12 @@
         doc += `- 현재 측정 싱크로율: ${sync}%\n\n`;
 
         const missions = {
-            A: `▶ 미션 브리핑: 전술 섬멸 작전 (TYPE_A)\n상황: 제4구역 내 대규모 괴수 군락 발견. 센티넬 ${s}의 파괴 능력을 전면 해제합니다.\n지침: 가이드 ${g}는 현장에 동행하여 속성 버프(전투력 증폭 및 피해 확산)를 지원하십시오. 교전 중 오염도가 상승할 시 즉각적인 밀착 가이딩으로 폭주를 억제해야 합니다.`,
-            B: `▶ 미션 브리핑: 구역 탐색 및 정찰 (TYPE_B)\n상황: 구 문명 폐허 지대에서 미확인 파장 감지.\n지침: 해당 구역의 지형이 험준합니다. 가이드 ${g}는 이동 지원 및 색적 버프를 유지하며, 센티넬 ${s}의 감각 과부하를 최소화하기 위해 백업에 집중하십시오. 적 발견 시 생포를 우선으로 합니다.`,
-            C: `▶ 미션 브리핑: 거점 방어 및 구출 (TYPE_C)\n상황: 아이기스 외곽 방어선에 적의 기습 공격 발생. 민간인 및 하위 요원 고립.\n지침: 센티넬 ${s}는 즉각 방어선을 구축하고 적의 접근을 차단하십시오. 가이드 ${g}는 재생 필드 전개 및 보호막 버프를 통해 아군의 생존력을 극대화해야 합니다.`,
-            S: `▶ 미션 브리핑: 공명 정밀 테스트 (TYPE_S)\n상황: 하모니 부서 주관, 파트너 간 정신 파장 동기화 정밀 검사 실시.\n지침: 두 요원은 특별통제 훈련장(돔)으로 이동하십시오. 실전과 동일한 환경에서 깊은 수준의 신체 접촉 가이딩을 시행하며, 속성 버프의 유지 시간과 싱크로율 변화 데이터를 산출합니다.`,
-            K: `▶ 미션 브리핑: 🚨 코드 블랙 (강제 안정화)\n상황: 센티넬 ${s}의 오염도 수치 80% 돌파. 폭주 징후 뚜렷함.\n지침: 비상 안정화실(STAB) 격리 프로토콜 가동. 가이드 ${g}는 즉각 격리실로 진입하여 고수위 접촉 가이딩을 실시하십시오. 실패 시 강제 구속 및 생명 유지 장치가 가동됩니다.`,
-            H: `▶ 미션 브리핑: 하모니 정기 상담 (TYPE_H)\n상황: 센티넬 ${s}의 파장 불안정성 누적 및 파트너 간의 유대감 저하 감지.\n지침: 두 요원은 즉시 하모니 심리상담실로 출석하십시오. 전투 임무는 전면 중단되며, 서로의 감정적 갈등을 해소하고 가이딩의 질을 높이기 위한 정신적 피드백 세션이 진행됩니다.`
+            A: `▶ 미션 브리핑: 전술 섬멸 작전 (TYPE_A)\n상황: 제4구역 내 대규모 괴수 군락 발견. 센티넬 ${s}의 파괴 능력을 전면 해제합니다.\n지침: 가이드 ${g}는 현장에 동행하여 속성 버프를 지원하십시오. 교전 중 오염도 상승이 관측될 시 즉각적인 밀착 가이딩을 통해 정신 파장을 안정화해야 합니다.`,
+            B: `▶ 미션 브리핑: 구역 탐색 및 정찰 (TYPE_B)\n상황: 구 문명 폐허 지대에서 미확인 파장 감지.\n지침: 구역 내 변수가 다수 존재합니다. 가이드 ${g}는 센티넬 ${s}의 감각 과부하를 최소화하기 위해 백업에 집중하며 시야 및 이동을 보조하십시오. 적대 세력 조우 시 생포를 우선으로 합니다.`,
+            C: `▶ 미션 브리핑: 거점 방어 및 구출 (TYPE_C)\n상황: 아이기스 외곽 방어선에 기습 타격 발생. 민간인 및 하위 요원 고립.\n지침: 센티넬 ${s}는 즉각 방어선을 구축하여 접근을 차단하십시오. 가이드 ${g}는 버프를 통해 아군의 생존력을 극대화하고 전선을 유지해야 합니다.`,
+            S: `▶ 미션 브리핑: 공명 정밀 테스트 (TYPE_S)\n상황: 하모니 부서 주관, 파트너 간 정신 파장 동기화 정밀 검사 실시.\n지침: 두 요원은 특별통제 훈련장으로 이동하십시오. 실전과 동일한 환경에서 심층 동기화 가이딩을 시행하며, 속성 버프의 유지 시간과 싱크로율 변화 데이터를 산출합니다.`,
+            K: `▶ 미션 브리핑: 🚨 코드 블랙 (비상 안정화)\n상황: 센티넬 ${s}의 오염도 임계점 돌파 위험. 폭주 징후 감지.\n지침: 비상 안정화실(STAB) 격리 프로토콜 가동. 가이드 ${g}는 즉각 격리실로 진입하여 집중 파장 안정화 및 심층 공명 가이딩을 실시하십시오. 실패 시 생명 유지 프로토콜로 강제 전환됩니다.`,
+            H: `▶ 미션 브리핑: 하모니 정기 상담 (TYPE_H)\n상황: 센티넬 ${s}의 파장 불안정성 누적 및 유대 지수 저하 감지.\n지침: 두 요원은 즉시 하모니 심리상담실로 출석하십시오. 외부 임무는 중단되며, 파트너 간의 파장 충돌을 해소하고 가이딩 효율을 복구하기 위한 멘탈 케어 세션이 진행됩니다.`
         };
 
         const terminal = document.getElementById('ooc-terminal');
@@ -385,9 +471,9 @@
             terminal.scrollTop = terminal.scrollHeight;
             if(i >= text.length) {
                 clearInterval(oocInterval);
-                terminal.innerText += `\n\n>> END_OF_DOCUMENT. GOOD LUCK.`;
+                terminal.innerText += `\n\n>> END_OF_DOCUMENT. MAY THE ARCH PROTECT YOU.`;
             }
-        }, 10);
+        }, 15);
 
         showNotification("MISSION_PROTOCOL_GENERATED");
     }
@@ -399,23 +485,21 @@
     }, 1000);
 
     setInterval(() => {
-        // 활성 요원 수치 랜덤 변동
         const baseAgents = 420;
         const fluct = Math.floor(Math.random() * 10) - 5;
         document.getElementById('agent-count').innerText = baseAgents + fluct;
-    }, 5000);
+    }, 4000);
 
     setInterval(() => {
-        if(Math.random() < 0.3) {
+        if(Math.random() < 0.4) {
             const log = sysLogs[Math.floor(Math.random() * sysLogs.length)];
             const term = document.getElementById('ooc-terminal');
-            if(!term.innerText.includes("END_OF_DOCUMENT")) return; // OOC 타이핑 중에는 로그 방해 금지
+            if(!term.innerText.includes("END_OF_DOCUMENT")) return; 
             term.innerText += `\n${log}`;
             term.scrollTop = term.scrollHeight;
         }
-    }, 6000);
+    }, 5000);
 
 </script>
-
 </body>
 </html>
