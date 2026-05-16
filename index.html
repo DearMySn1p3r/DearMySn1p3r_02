@@ -187,6 +187,25 @@
             color: #ccc; line-height: 1.7; white-space: pre-wrap; box-shadow: inset 0 0 30px rgba(0,0,0,1);
         }
 
+        /* --- MODE TABS --- */
+        .mode-tabs {
+            display: flex; margin-bottom: 20px; gap: 2px;
+            background: rgba(255,255,255,0.05); padding: 2px;
+            border: 1px solid var(--dimmer);
+        }
+        .mode-tab {
+            flex: 1; text-align: center; padding: 11px 4px;
+            font-size: 10px; letter-spacing: 2px; color: var(--dim);
+            transition: 0.25s; font-weight: 900;
+            border: 1px solid transparent;
+        }
+        .mode-tab:hover { color: #fff; text-shadow: 0 0 5px #fff; }
+        .mode-tab.active {
+            color: #000; background: var(--sys-main);
+            text-shadow: none; box-shadow: 0 0 15px rgba(255,255,255,0.5);
+        }
+        .hidden { display: none !important; }
+
         /* --- INTERNAL NOTIFICATION --- */
         #system-notif {
             position: fixed; bottom: 30px; right: 30px; width: 350px;
@@ -338,6 +357,11 @@
             <div id="sync-bar"><div id="sync-fill"></div></div>
         </div>
 
+        <div class="mode-tabs">
+            <div class="mode-tab active" data-mode="mission" onclick="switchMode('mission')">▶ MISSION</div>
+            <div class="mode-tab" data-mode="diagnosis" onclick="switchMode('diagnosis')">▶ DIAGNOSIS</div>
+        </div>
+
         <div class="input-group">
             <span class="input-label">SENTINEL_ID</span>
             <input type="text" id="sName" placeholder="센티넬 이름을 입력하세요">
@@ -346,7 +370,7 @@
             <span class="input-label">GUIDE_ID</span>
             <input type="text" id="gName" placeholder="가이드 이름을 입력하세요">
         </div>
-        <div class="input-group">
+        <div class="input-group" id="grp-mtype">
             <span class="input-label">MISSION_TYPE</span>
             <select id="mType">
                 <option value="A">전술 섬멸 작전 (최전선 전투 및 섬멸)</option>
@@ -358,7 +382,7 @@
                 <option value="R">코드 레드 (긴급 출동 프로토콜)</option>
             </select>
         </div>
-        <button onclick="generateOOC()">GENERATE_PROTOCOL</button>
+        <button id="action-btn" onclick="executeAction()">GENERATE_PROTOCOL</button>
         
         <div id="ooc-terminal">>> SYSTEM_STANDBY. AWAITING_OPERATOR_COMMAND...</div>
     </div>
@@ -403,7 +427,11 @@
         loc_harmony: { t: "하모니 심리상담실", c: "트라우마 관리 및 파트너 관계 유지를 위한 전용 공간. 소파와 조명까지 맞춤 설정된다. 파트너와 갈등 시 책임자에게 불려와 상담을 받는 곳." },
         loc_stab: { t: "비상 안정화실 (STAB)", c: "수치 80% 이상의 폭주 직전 센티넬을 강제 수용하는 곳. 차가운 백색 조명과 구속 장치 속에서 생존을 위한 강제 가이딩이 진행된다. 벽면의 그을음과 흠집이 공포심을 준다." },
         loc_medical: { t: "의무실 및 개인실", c: "[의무실] 부상 및 폭주 후유증 치료 시설. 차폐막과 안정화 기기가 장착된 병상에서 의료진과 가이드가 동시 케어한다.\n[개인실] 등급별로 설비가 다른 숙소. 요원의 취향이 반영되며 대부분의 일상적 가이딩이 이곳에서 이루어진다." },
-        loc_lounge: { t: "라운지 & 공명연구실", c: "[라운지] 고단한 임무 뒤 긴장을 푸는 소중한 휴식처. 햇빛과 식물, 부드러운 음악이 제공되며 속성 간 간섭을 최소화했다.\n[공명연구실] 감정 파장을 수치화하여 분석하는 투명 포드가 있는 차가운 실험 공간." }
+        loc_lounge: { t: "라운지 & 공명연구실", c: "[라운지] 고단한 임무 뒤 긴장을 푸는 소중한 휴식처. 햇빛과 식물, 부드러운 음악이 제공되며 속성 간 간섭을 최소화했다.\n[공명연구실] 감정 파장을 수치화하여 분석하는 투명 포드가 있는 차가운 실험 공간." },
+
+        // 06 부서 및 특수 조직
+        dept_harmony: { t: "하모니 부서 (HARMONY)", c: "[목적] 아크 내 모든 가이드들이 소속되어 있으며, 가이드와 센티넬의 등급을 매기고, ‘생명 데이터’를 관리하는 총괄 행정 부서.\n[권한] 페어링 매칭, 임무 투입 여부, 복귀 평가 등 ‘모든 생명 관리 권한’을 가진 최종 결재권자." },
+        team_rst: { t: "긴급 제압팀 (R.S.T.)", c: "[목적] 하모니 부서 내의 특수 부대로, ‘통제 불능 센티넬’의 물리적 무력화 및 강제 가이딩을 위한 최종 수단.\n[구성] S급 가이드 능력을 지닌 요원들 중, 각성 전 이력(용병, 특수부대 등)에 기반한 압도적 ‘非능력 전투 기술’을 보유한 인원으로만 한정 선발.\n[역할] 이들은 대부분 공식 파트너 없이 활동하고 있으며, ARCH 전역 최고 위험등급 폭주 사태에 최우선 투입되는 ‘해결사’로 사실상 생존을 보장할 수 없는 임무에 주로 호출된다." }
     };
 
     const sysLogs = [
@@ -451,7 +479,8 @@
             "02 속성 및 평판": ["elem_none", "elem_fire", "elem_water", "elem_grass", "elem_light", "elem_wind", "elem_ice"],
             "03 시스템 및 규정": ["sys_guide_lv", "sys_sync", "sys_addict", "sys_uniform"],
             "04 적 및 위협 요소": ["enemy_monster", "enemy_rampage", "enemy_corrupt"],
-            "05 주요 거점 (MAP)": ["loc_aegis", "loc_sky", "loc_dome", "loc_harmony", "loc_stab", "loc_medical", "loc_lounge"]
+            "05 주요 거점 (MAP)": ["loc_aegis", "loc_sky", "loc_dome", "loc_harmony", "loc_stab", "loc_medical", "loc_lounge"],
+            "06 부서 및 특수 조직": ["dept_harmony", "team_rst"]
         };
 
         for (let cat in categories) {
@@ -487,6 +516,103 @@
 
     function closeLore() { document.getElementById('data-overlay').style.display = 'none'; }
 
+    // --- 모드 전환 시스템 ---
+    let currentMode = 'mission';
+    function switchMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.mode-tab[data-mode="${mode}"]`).classList.add('active');
+
+        const mTypeGrp = document.getElementById('grp-mtype');
+        const btn = document.getElementById('action-btn');
+
+        if (mode === 'mission') {
+            mTypeGrp.classList.remove('hidden');
+            btn.innerText = 'GENERATE_PROTOCOL';
+        } else if (mode === 'diagnosis') {
+            mTypeGrp.classList.add('hidden');
+            btn.innerText = 'RUN_DIAGNOSIS';
+        }
+        showNotification(`MODE_SWITCHED: ${mode.toUpperCase()}`);
+    }
+
+    function executeAction() {
+        if (currentMode === 'mission') generateOOC();
+        else if (currentMode === 'diagnosis') generateDiagnosis();
+    }
+
+    // --- 공용 터미널 출력 (타이핑 애니메이션) ---
+    let oocInterval = null;
+    function typewriteToTerminal(text) {
+        const terminal = document.getElementById('ooc-terminal');
+        terminal.innerText = "";
+        if (oocInterval) clearInterval(oocInterval);
+        let i = 0;
+        oocInterval = setInterval(() => {
+            terminal.innerText += text[i]; i++;
+            terminal.scrollTop = terminal.scrollHeight;
+            if (i >= text.length) {
+                clearInterval(oocInterval);
+                oocInterval = null;
+                terminal.innerText += `\n\n>> END_OF_DOCUMENT. MAY THE ARCH PROTECT YOU.`;
+            }
+        }, 15);
+    }
+
+    // --- 페어링 호환성 진단 생성기 ---
+    function generateDiagnosis() {
+        const s = document.getElementById('sName').value || "미상_센티넬";
+        const g = document.getElementById('gName').value || "미상_가이드";
+
+        // 싱크로율 산정
+        const sync = Math.min(99, Math.max(35, Math.floor(Math.random() * 65 + 35)));
+
+        document.getElementById('sync-fill').style.width = sync + "%";
+        document.getElementById('sync-val').innerText = `${sync}%`;
+
+        // 등급 분류
+        let grade, gradeNote;
+        if (sync < 50) { grade = "F / 배정 불가"; gradeNote = "정신 파장 불일치. 페어링 시 양측 모두 위험. 즉시 재배정 권장."; }
+        else if (sync < 71) { grade = "C / 표준 조합"; gradeNote = "기본 임무 수행 가능 수준. 단기 페어링에 한해 운용."; }
+        else if (sync < 91) { grade = "B-A / 엘리트 조합"; gradeNote = "고난도 임무 투입 승인. 장기 페어링 시 시너지 극대화 예상."; }
+        else { grade = "S / 전설적 조합"; gradeNote = "전설적 수치 감지. 각인 발현이 임박하며, 강제 분리 시 양측 정신 붕괴 위험."; }
+
+        const imprint = sync >= 91 ? "🚨 발현 임박 (영구 각인)" : sync >= 81 ? "조짐 감지" : sync >= 65 ? "낮음" : "미확인";
+        const addict = Math.floor(Math.random() * 80 + 15);
+        const addictWarn = addict > 70 ? "⚠️ 고위험 / 격리 필요" : addict > 45 ? "주의 / 모니터링" : "안정 범주";
+
+        // 권고사항 풀
+        const recs = [
+            "정기 가이딩 주 3회 이상, 라운지 우선 사용권 부여.",
+            "고압 임무 투입 가능. 단, 임무 후 24시간 안정화 의무.",
+            "공명연구실 정기 측정 일정 편성. 데이터 누적 관찰 요망.",
+            "감정 파장 모니터링 필수. 별거 시 즉시 보고 의무.",
+            "심층 가이딩 세션 권장. 트라우마 발현 시 하모니 즉시 개입.",
+            "장기 동행 임무 가능. 파장 충돌 발생 시 격리 후 재조정.",
+            "분리 임무 금지 권고. 동선 일치율 90% 이상 유지 요망."
+        ];
+        const rec = recs[Math.floor(Math.random() * recs.length)];
+
+        // 진단서 출력
+        let docText = `=================================\n`;
+        docText += `[ HARMONY DIVISION: PAIRING DIAGNOSTIC ]\n`;
+        docText += `DIAGNOSTIC_NO: HD-${Math.random().toString(36).substr(2,7).toUpperCase()}\n`;
+        docText += `=================================\n\n`;
+        docText += `▶ 진단 대상\n`;
+        docText += `- 센티넬: ${s}\n`;
+        docText += `- 가이드: ${g}\n\n`;
+        docText += `▶ 측정 결과\n`;
+        docText += `- 싱크로율: ${sync}%\n`;
+        docText += `- 평가 등급: ${grade}\n`;
+        docText += `- 각인 가능성: ${imprint}\n`;
+        docText += `- 가이딩 중독 위험도: ${addict}% [${addictWarn}]\n\n`;
+        docText += `▶ 등급 해석\n${gradeNote}\n\n`;
+        docText += `▶ 하모니 권고사항\n${rec}`;
+
+        typewriteToTerminal(docText);
+        showNotification("PAIRING_DIAGNOSTIC_COMPLETE");
+    }
+
     // --- OOC 생성기 ---
     function generateOOC() {
         const s = document.getElementById('sName').value || "미상_센티넬";
@@ -516,19 +642,8 @@
             R: `▶ 미션 브리핑: 🚨 CODE RED (긴급 출동)\n상황: ARCH 전체 긴급 사이렌 발령. 정체불명 위협 접근.\n지침: 브리핑 생략. ${s}, ${g} 요원은 즉시 무장 후 최전선으로 출동하십시오.`
         };
 
-        const terminal = document.getElementById('ooc-terminal');
-        terminal.innerText = "";
-        
         let text = doc + (missions[type] || missions.A);
-        let i = 0;
-        let oocInterval = setInterval(() => {
-            terminal.innerText += text[i]; i++;
-            terminal.scrollTop = terminal.scrollHeight;
-            if(i >= text.length) {
-                clearInterval(oocInterval);
-                terminal.innerText += `\n\n>> END_OF_DOCUMENT. MAY THE ARCH PROTECT YOU.`;
-            }
-        }, 15);
+        typewriteToTerminal(text);
 
         showNotification("MISSION_PROTOCOL_GENERATED");
     }
