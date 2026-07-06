@@ -248,6 +248,25 @@
         .loading-text { font-size: 18px; letter-spacing: 12px; color: var(--sys-main); font-weight: 700; margin-bottom: 20px; animation: textGlitch 0.1s infinite; text-shadow: 0 0 15px var(--sys-main); }
         .loading-bar { width: 400px; height: 1px; background: rgba(255,255,255,0.2); position: relative; }
         .loading-fill { height: 100%; background: var(--sys-main); width: 0%; box-shadow: 0 0 20px var(--sys-main); animation: fillBar 1.5s forwards ease-in-out; }
+
+        /* 부팅 로그 타이핑 (idea 6) */
+        #boot-screen { transition: opacity 0.5s ease; }
+        #boot-log {
+            margin-top: 22px; width: 400px; max-width: 80vw; height: 130px;
+            font-family: monospace; font-size: 11px; line-height: 1.85;
+            color: rgba(255,255,255,0.65); text-align: left; white-space: pre-wrap;
+        }
+        #boot-log .ok { color: #fff; text-shadow: 0 0 6px #fff; }
+        #boot-log .crit { color: #fff; text-shadow: 0 0 8px #fff; animation: textGlitch 0.3s infinite; }
+        .boot-caret { animation: caretBlink 0.8s step-end infinite; }
+        @keyframes caretBlink { 50% { opacity: 0; } }
+
+        /* 터미널 문서 복사/저장 버튼 (idea 2) */
+        #doc-actions { display: none; gap: 8px; margin-top: 10px; }
+        #doc-actions.show { display: flex; }
+        .doc-btn {
+            flex: 1; margin-top: 0; padding: 11px; font-size: 10px; letter-spacing: 2px;
+        }
         
         @keyframes textGlitch { 
             0% { transform: translate(0) } 
@@ -258,6 +277,21 @@
             100% { transform: translate(0) } 
         }
         @keyframes fillBar { 100% { width: 100%; } }
+
+        /* --- TOUCH DEVICES: 커스텀 커서 비활성 & 기본 커서 복원 --- */
+        @media (hover: none), (pointer: coarse) {
+            * { cursor: auto !important; }
+            #cursor { display: none !important; }
+        }
+
+        /* --- RESPONSIVE FALLBACK (<=1024px): 3단 그리드를 세로 스택으로 --- */
+        @media (max-width: 1024px) {
+            body { height: auto; min-height: 100vh; overflow-y: auto; }
+            header { height: auto; flex-wrap: wrap; gap: 12px; padding: 15px 20px; }
+            #main-wrapper { grid-template-columns: 1fr; overflow: visible; }
+            .panel { overflow-y: visible; }
+            #tactical-display { min-height: 520px; }
+        }
     </style>
 </head>
 <body>
@@ -266,6 +300,7 @@
 <div id="boot-screen">
     <div class="loading-text">ARCH_CORE_INITIALIZING</div>
     <div class="loading-bar"><div class="loading-fill"></div></div>
+    <div id="boot-log"></div>
 </div>
 <div id="system-notif">>> SYSTEM_MESSAGE</div>
 
@@ -387,6 +422,9 @@
         <button id="action-btn" onclick="executeAction()">GENERATE_PROTOCOL</button>
         
         <div id="ooc-terminal">>> SYSTEM_STANDBY. AWAITING_OPERATOR_COMMAND...</div>
+        <div id="doc-actions">
+            <button class="doc-btn" onclick="copyDocument()">[ COPY ]</button>
+        </div>
     </div>
 </div>
 
@@ -454,13 +492,47 @@
     document.addEventListener('mousedown', () => cursor.classList.add('click-anim'));
     document.addEventListener('mouseup', () => cursor.classList.remove('click-anim'));
 
-    // --- 부팅 시스템 ---
+    // --- 부팅 시스템 (로그 타이핑 연출 / idea 6) ---
+    const bootLogs = [
+        { txt: "> MOUNTING AEGIS CORE ............ ", tail: "OK", cls: "ok" },
+        { txt: "> NEURAL LINK HANDSHAKE ......... ", tail: "OK", cls: "ok" },
+        { txt: "> HARMONY DB SYNC .............. ", tail: "OK", cls: "ok" },
+        { txt: "> RADAR ARRAY CALIBRATION ...... ", tail: "OK", cls: "ok" },
+        { txt: "> ENCRYPTION LAYER ............. ", tail: "ACTIVE", cls: "ok" },
+        { txt: "> THREAT ASSESSMENT ............ ", tail: "CRITICAL", cls: "crit" },
+        { txt: "> ALL SYSTEMS NOMINAL. WELCOME, OPERATOR.", tail: "", cls: "ok" }
+    ];
+
+    function runBootSequence() {
+        const logEl = document.getElementById('boot-log');
+        let line = 0;
+        const caret = '<span class="boot-caret">▊</span>';
+
+        function nextLine() {
+            if (line >= bootLogs.length) {
+                // 로그 완료 → 부트 스크린 페이드아웃
+                setTimeout(() => {
+                    const boot = document.getElementById('boot-screen');
+                    boot.style.opacity = '0';
+                    setTimeout(() => { boot.style.display = 'none'; }, 500);
+                    showNotification("ARCH_DATABASE_BW_LOADED");
+                }, 450);
+                return;
+            }
+            const item = bootLogs[line];
+            const tailHtml = item.tail ? `<span class="${item.cls}">${item.tail}</span>` : '';
+            logEl.innerHTML = logEl.innerHTML.replace(caret, '')
+                + item.txt + tailHtml + '\n' + caret;
+            logEl.scrollTop = logEl.scrollHeight;
+            line++;
+            setTimeout(nextLine, 230);
+        }
+        setTimeout(nextLine, 400);
+    }
+
     window.onload = () => {
-        setTimeout(() => {
-            document.getElementById('boot-screen').style.display = 'none';
-            showNotification("ARCH_DATABASE_BW_LOADED");
-        }, 1800);
         renderLore();
+        runBootSequence();
     };
 
     function showNotification(msg) {
@@ -471,6 +543,46 @@
         void notif.offsetWidth; 
         notif.style.animation = 'slideIn 0.3s forwards';
         setTimeout(() => { notif.style.display = 'none'; }, 3500);
+    }
+
+    // --- 화면 캡처 (REC 버튼) ---
+    let isCapturing = false;
+    function captureScreen() {
+        if (isCapturing) return;
+        if (typeof html2canvas === 'undefined') {
+            showNotification("CAPTURE_LIB_NOT_LOADED");
+            return;
+        }
+        isCapturing = true;
+
+        // 캡처에 담기면 안 되는 UI 요소들은 잠시 숨긴다.
+        const hideEls = [
+            document.getElementById('capture-btn'),
+            document.getElementById('cursor'),
+            document.getElementById('system-notif')
+        ];
+        const prev = hideEls.map(el => el ? el.style.visibility : null);
+        hideEls.forEach(el => { if (el) el.style.visibility = 'hidden'; });
+
+        html2canvas(document.body, {
+            backgroundColor: '#000000',
+            useCORS: true,
+            logging: false,
+            scale: window.devicePixelRatio || 1
+        }).then(canvas => {
+            const link = document.createElement('a');
+            const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            link.download = `ARCH_CAPTURE_${stamp}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showNotification("SCREEN_CAPTURE_SAVED");
+        }).catch(err => {
+            console.error('captureScreen failed:', err);
+            showNotification("CAPTURE_FAILED");
+        }).finally(() => {
+            hideEls.forEach((el, i) => { if (el) el.style.visibility = prev[i] || ''; });
+            isCapturing = false;
+        });
     }
 
     // --- 데이터 렌더링 (분류별) ---
@@ -507,11 +619,12 @@
         document.getElementById('ov-title').innerText = db[key].t;
         
         const contentEl = document.getElementById('ov-content');
-        contentEl.innerHTML = "";
+        contentEl.textContent = "";
         clearInterval(typeInterval);
         
-        let htmlContent = db[key].c;
-        contentEl.innerHTML = htmlContent;
+        // 로어 본문은 순수 텍스트다. innerHTML로 넣으면 <가이딩 규약> 같은
+        // 꺾쇠 표기가 HTML 태그로 오인돼 화면에서 사라지므로 textContent로 출력한다.
+        contentEl.textContent = db[key].c;
         
         showNotification(`ACCESSING_FILE: ${key.toUpperCase()}`);
     }
@@ -545,8 +658,12 @@
 
     // --- 공용 터미널 출력 (타이핑 애니메이션) ---
     let oocInterval = null;
+    let lastDocument = "";           // 복사/저장용 마지막 생성 문서 (idea 2)
     function typewriteToTerminal(text) {
         const terminal = document.getElementById('ooc-terminal');
+        const footer = `\n\n>> END_OF_DOCUMENT. MAY THE ARCH PROTECT YOU.`;
+        lastDocument = text + footer;
+        document.getElementById('doc-actions').classList.remove('show'); // 타이핑 중 숨김
         terminal.innerText = "";
         if (oocInterval) clearInterval(oocInterval);
         let i = 0;
@@ -556,9 +673,32 @@
             if (i >= text.length) {
                 clearInterval(oocInterval);
                 oocInterval = null;
-                terminal.innerText += `\n\n>> END_OF_DOCUMENT. MAY THE ARCH PROTECT YOU.`;
+                terminal.innerText += footer;
+                document.getElementById('doc-actions').classList.add('show'); // 완료 후 노출
             }
         }, 15);
+    }
+
+    // --- 생성 문서 복사 / 저장 (idea 2) ---
+    function copyDocument() {
+        if (!lastDocument) { showNotification("NO_DOCUMENT_TO_COPY"); return; }
+        const done = () => showNotification("DOCUMENT_COPIED_TO_CLIPBOARD");
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(lastDocument).then(done).catch(() => fallbackCopy(lastDocument, done));
+        } else {
+            fallbackCopy(lastDocument, done);
+        }
+    }
+
+    function fallbackCopy(txt, done) {
+        const ta = document.createElement('textarea');
+        ta.value = txt;
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(); }
+        catch (e) { showNotification("COPY_FAILED"); }
+        ta.remove();
     }
 
     // --- 페어링 호환성 진단 생성기 ---
@@ -598,7 +738,7 @@
         // 진단서 출력
         let docText = `=================================\n`;
         docText += `[ HARMONY DIVISION: PAIRING DIAGNOSTIC ]\n`;
-        docText += `DIAGNOSTIC_NO: HD-${Math.random().toString(36).substr(2,7).toUpperCase()}\n`;
+        docText += `DIAGNOSTIC_NO: HD-${Math.random().toString(36).slice(2,9).toUpperCase()}\n`;
         docText += `=================================\n\n`;
         docText += `▶ 진단 대상\n`;
         docText += `- 센티넬: ${s}\n`;
@@ -627,7 +767,7 @@
 
         let doc = `=================================\n`;
         doc += `[ ARCH CENTRAL COMMAND: TACTICAL PROTOCOL ]\n`;
-        doc += `OPERATION_CODE: ${Math.random().toString(36).substr(2,7).toUpperCase()}\n`;
+        doc += `OPERATION_CODE: ${Math.random().toString(36).slice(2,9).toUpperCase()}\n`;
         doc += `=================================\n\n`;
         doc += `▶ 지정 파트너 정보\n`;
         doc += `- 투입 센티넬: ${s}\n`;
