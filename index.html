@@ -1,817 +1,1323 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>ARCH STRATEGIC COMMAND</title>
-    <link rel="icon" type="image/png" href="「ARCH」 Symbol Logo Black Ver.png">
-    <link rel="apple-touch-icon" href="「ARCH」 Symbol Logo Black Ver.png">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@100;300;500;700&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>ARCH — Strategic Command</title>
+<link rel="icon" type="image/png" href="「ARCH」 Symbol Logo Black Ver.png">
+<link rel="apple-touch-icon" href="「ARCH」 Symbol Logo Black Ver.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Orbitron:wght@500;700&display=swap">
+<style>
+:root{
+  --bg:#000; --s1:#0a0a0a; --s2:#121212;
+  --fg:#f4f4f4; --t2:rgba(255,255,255,.64); --t3:rgba(255,255,255,.4); --t4:rgba(255,255,255,.2);
+  --hl:rgba(255,255,255,.07); --hl2:rgba(255,255,255,.14);
+  --sans:'Pretendard Variable',Pretendard,'Noto Sans KR',-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --disp:'Orbitron',sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;cursor:none!important}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:var(--t4)}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);overflow:hidden;display:flex;flex-direction:column;user-select:none;-webkit-font-smoothing:antialiased;letter-spacing:-.005em}
+button,input,select{font:inherit;color:inherit;background:none;border:none}
+.lbl{font:500 9px/1.2 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--t3)}
 
-        :root {
-            /* STRICT BLACK & WHITE THEME */
-            --bg: #000000;
-            --accent: #ffffff;
-            --dim: rgba(255, 255, 255, 0.4);
-            --dimmer: rgba(255, 255, 255, 0.1);
-            --sys-main: #ffffff;
-            --sys-alert: #e0e0e0;
-            --font: 'Orbitron', 'Noto Sans KR', sans-serif;
-        }
+/* ── cursor ── */
+#cur-dot{position:fixed;left:0;top:0;width:4px;height:4px;margin:-2px 0 0 -2px;background:#fff;pointer-events:none;z-index:50001;mix-blend-mode:difference}
+#cursor{position:fixed;left:0;top:0;width:24px;height:24px;pointer-events:none;z-index:50000;will-change:transform}
+#cursor i{position:absolute;width:7px;height:7px;border:0 solid #fff;transition:width .3s var(--ease),height .3s var(--ease),border-color .3s}
+#cursor i:nth-child(1){left:0;top:0;border-left-width:1px;border-top-width:1px}
+#cursor i:nth-child(2){right:0;top:0;border-right-width:1px;border-top-width:1px}
+#cursor i:nth-child(3){right:0;bottom:0;border-right-width:1px;border-bottom-width:1px}
+#cursor i:nth-child(4){left:0;bottom:0;border-left-width:1px;border-bottom-width:1px}
+#cursor.lock i{width:10px;height:10px}
+#cursor.down i{border-color:rgba(255,255,255,.5)}
+#cursor b{position:absolute;left:100%;top:100%;margin:4px 0 0 4px;font:500 8px var(--mono);letter-spacing:.14em;color:rgba(255,255,255,.55);white-space:nowrap;opacity:0;transition:opacity .2s}
+#cursor.lock b{opacity:1}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-        /* --- BASIC SETUP & CURSOR --- */
-        * { box-sizing: border-box; outline: none; cursor: none !important; }
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: var(--sys-main); }
+/* ── header ── */
+header{height:48px;flex:none;display:flex;align-items:center;gap:28px;padding:0 22px;border-bottom:1px solid var(--hl);position:relative;z-index:20}
+.brand{display:flex;align-items:center;gap:12px}
+.brand{transition:opacity .2s}.brand:hover{opacity:.75}
+.brand img{width:18px;height:18px;object-fit:contain;transition:transform .6s var(--ease)}
+.brand:hover img{transform:rotate(-12deg) scale(1.08)}
+.brand .wm{font:700 12px var(--disp);letter-spacing:.38em}
+.brand .lbl{padding-left:14px;border-left:1px solid var(--hl2)}
+.status{display:flex;gap:28px;margin-left:auto}
+.st{display:flex;align-items:center;gap:10px}
+.st b{font:500 11px var(--mono);letter-spacing:.08em;color:var(--fg)}
+.chip{background:#fff;color:#000!important;padding:2px 6px;font-size:10px!important;display:inline-flex;align-items:center;gap:6px}
+.chip::before{content:'';width:5px;height:5px;border-radius:50%;background:#000;animation:blink 1.2s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.hr{display:flex;align-items:center;gap:10px;padding-left:28px;border-left:1px solid var(--hl)}
+#clock{font:400 11.5px var(--mono);letter-spacing:.08em}
+.tbtn{font:500 9px var(--mono);letter-spacing:.18em;color:var(--t2);padding:5px 9px;margin-left:8px;border:1px solid var(--hl2);display:inline-flex;align-items:center;gap:7px;transition:.25s var(--ease)}
+.tbtn i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.tbtn:hover{background:#fff;color:#000;border-color:#fff}
 
-        body {
-            margin: 0; background: var(--bg); color: var(--accent);
-            font-family: var(--font); height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column;
-            user-select: none;
-        }
+/* ── layout ── */
+#main{flex:1;display:grid;grid-template-columns:1fr 340px;min-height:0}
 
-        #cursor {
-            position: fixed; width: 40px; height: 40px; border: 1px solid var(--sys-main);
-            border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 10000;
-            transition: width 0.1s, height 0.1s, background-color 0.1s;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-        }
-        #cursor::before, #cursor::after { content: ''; position: absolute; background: var(--sys-main); }
-        #cursor::before { top: 50%; left: -5px; right: -5px; height: 1px; }
-        #cursor::after { left: 50%; top: -5px; bottom: -5px; width: 1px; }
-        
-        .click-anim { 
-            width: 20px !important; height: 20px !important; 
-            border-color: var(--accent) !important; 
-            background-color: rgba(255,255,255,0.3);
-            box-shadow: 0 0 25px var(--accent) !important;
-        }
+/* ── stage ── */
+#stage{position:relative;overflow:hidden;min-height:0}
+#snd-btn.on{background:#fff;color:#000;border-color:#fff}
+#bg{position:absolute;inset:0;width:100%;height:100%}
+#xh i{position:absolute;background:rgba(255,255,255,.07);pointer-events:none;opacity:0;transition:opacity .3s}
+#xh .h{left:0;right:0;height:1px;top:0}
+#xh .v{top:0;bottom:0;width:1px;left:0}
+#stage.track #xh i{opacity:1}
+.st-top{position:absolute;left:32px;right:32px;top:28px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:3}
+.st-top h1{font:200 26px var(--sans);letter-spacing:.46em;margin:10px 0 6px;display:flex;align-items:center;gap:20px}
+.st-top h1 img{width:20px;height:20px;object-fit:contain}
+.st-top p{font-size:12px;color:var(--t3);letter-spacing:.01em}
+.radar{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+#radar{width:84px;height:84px}
+#sec{position:absolute;inset:118px 24px 92px;transition:transform .7s var(--ease),opacity .45s var(--ease)}
+#sec>svg{width:100%;height:100%;display:block}
+#sec.zoom{transform:scale(2.6);opacity:0;pointer-events:none}
+#beam{position:absolute;left:-24px;right:-24px;height:70px;top:0;pointer-events:none;opacity:0;
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,.05));border-bottom:1px solid rgba(255,255,255,.55)}
+#beam::after{content:'SCAN';position:absolute;right:28px;bottom:6px;font:500 9px var(--mono);letter-spacing:.2em;color:var(--t3)}
+.st-bot{position:absolute;left:32px;right:32px;bottom:22px;display:flex;align-items:flex-end;gap:24px;pointer-events:none;z-index:3;transition:opacity .4s}
+#evlog{display:flex;flex-direction:column-reverse;gap:6px;min-width:0;flex:1}
+.ev{display:flex;gap:10px;align-items:baseline;font:400 10px var(--mono);white-space:nowrap;animation:wipe .6s var(--ease) both;transition:opacity .5s}
+.ev .t{color:var(--t4)}
+.ev .g{color:#000;background:#fff;padding:1px 5px;font-size:8px;letter-spacing:.14em;font-weight:500}
+.ev .x{color:var(--t2);font-family:var(--sans);font-size:11.5px;overflow:hidden;text-overflow:ellipsis}
+.ev:nth-last-child(2){opacity:.5}
+.ev:nth-last-child(3){opacity:.25}
+@keyframes wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.legend{display:flex;gap:18px;flex:none}
+.legend span{display:flex;align-items:center;gap:8px}
+.legend i{width:14px;height:8px;border:1px solid var(--t2)}
+.legend i.h{background:repeating-linear-gradient(45deg,var(--t2) 0 1px,transparent 1px 4px)}
+.legend i.w{height:0;border:none;border-top:1px dashed var(--t2)}
+#coords{flex:none;min-width:150px;text-align:right}
 
-        /* --- SFX: BACKGROUND & HUD DECO --- */
-        .scanline {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(255, 255, 255, 0.03) 50%);
-            background-size: 100% 4px; pointer-events: none; z-index: 9000;
-        }
+/* frame / emblem / signal */
+header::after{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:160px;background:linear-gradient(90deg,transparent,#fff,transparent);animation:sig 7s linear infinite;opacity:.8}
+@keyframes sig{from{transform:translateX(-160px)}to{transform:translateX(100vw)}}
+.frame{position:absolute;inset:14px;pointer-events:none;z-index:2}
+.frame i{position:absolute;width:16px;height:16px;border:0 solid rgba(255,255,255,.45)}
+.frame i:nth-child(1){left:0;top:0;border-left-width:1px;border-top-width:1px}
+.frame i:nth-child(2){right:0;top:0;border-right-width:1px;border-top-width:1px}
+.frame i:nth-child(3){right:0;bottom:0;border-right-width:1px;border-bottom-width:1px}
+.frame i:nth-child(4){left:0;bottom:0;border-left-width:1px;border-bottom-width:1px}
+.ruler{position:absolute;top:130px;bottom:110px;width:7px;pointer-events:none;background:repeating-linear-gradient(180deg,rgba(255,255,255,.22) 0 1px,transparent 1px 12px);-webkit-mask:linear-gradient(transparent,#000 20%,#000 80%,transparent);mask:linear-gradient(transparent,#000 20%,#000 80%,transparent)}
+.ruler.l{left:14px}.ruler.r{right:14px}
+.emblem{position:absolute;left:50%;top:54%;width:min(52vh,460px);aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none;opacity:.07;transition:opacity .5s}
+.emblem img{position:absolute;inset:24%;width:52%;height:52%;object-fit:contain}
+.emblem svg{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:#fff;stroke-width:.4;animation:spin 90s linear infinite}
+.emblem .e2{stroke-dasharray:1 5}
+#stage.in-detail .emblem{opacity:0}
+#stage.in-detail .frame,#stage.in-detail .ruler{opacity:0}
+.frame,.ruler{transition:opacity .4s}
+#sec.glitch>svg{animation:glitchSec .2s steps(2)}
+@keyframes glitchSec{0%{transform:translateX(-3px);opacity:.75}50%{transform:translateX(2px)}100%{transform:none;opacity:1}}
+.btn.pri{clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px))}
+.btn.pri:hover{background:#cfcfcf!important;color:#000!important}
+/* alert mode */
+#alert{position:absolute;inset:0;pointer-events:none;z-index:9;opacity:0;transition:opacity .3s}
+body.alert #alert{opacity:1}
+#alert .edge{position:absolute;inset:0;box-shadow:inset 0 0 0 2px #fff,inset 0 0 120px rgba(255,255,255,.12);animation:blink .5s steps(2) infinite}
+#alert .band{position:absolute;left:0;right:0;top:46%;height:40px;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(-45deg,#fff 0 14px,#000 14px 28px);background-size:40px 40px;animation:stripes 1s linear infinite}
+#alert .band span{background:#000;color:#fff;font:700 12px var(--disp);letter-spacing:.5em;padding:10px 22px 10px 30px;border:1px solid #fff}
+@keyframes stripes{to{background-position:40px 0}}
+body.alert .chip{animation:blink .3s steps(2) infinite}
+/* keys help */
+#keys{position:fixed;right:24px;bottom:24px;z-index:31000;background:#070707;border:1px solid rgba(255,255,255,.5);border-top-color:#fff;padding:16px 18px;min-width:250px;clip-path:inset(0 0 0 100%);transition:clip-path .5s var(--ease);pointer-events:none}
+#keys.open{clip-path:inset(0 0 0 0);pointer-events:auto}
+#keys .row{display:flex;justify-content:space-between;gap:20px;padding:7px 0;font-size:13px;color:var(--t2);border-bottom:1px solid var(--hl)}
+#keys .row:last-child{border:none}
+#keys kbd{font:500 10px var(--mono);color:#fff;border:1px solid var(--hl2);padding:2px 6px;min-width:22px;text-align:center}
+.ib.w{width:auto;padding:0 10px;font:500 10px var(--mono);letter-spacing:.14em}
 
-        .noise-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
-            z-index: -1; pointer-events: none;
-        }
+/* section svg */
+.s-t{font:400 9px 'JetBrains Mono',monospace;fill:rgba(255,255,255,.35);letter-spacing:1.6px}
+.s-lv{font:500 13px 'JetBrains Mono',monospace;fill:#fff;letter-spacing:1px}
+.s-lvk{font:400 11px 'Pretendard Variable','Noto Sans KR',sans-serif;fill:rgba(255,255,255,.4)}
+.s-ln{fill:none;stroke:#fff}
+.cell .c-bg{fill:rgba(0,0,0,.6);stroke:rgba(255,255,255,.34);stroke-width:.75;transition:fill .35s var(--ease),stroke .35s}
+.cell .c-hz{fill:url(#hatch);opacity:.28;pointer-events:none}
+.cell .pv{opacity:.16;transition:opacity .35s;pointer-events:none}
+.cell .c-code{font:400 8px 'JetBrains Mono',monospace;fill:rgba(255,255,255,.42);letter-spacing:1.6px}
+.cell .c-name{font:500 13.5px 'Pretendard Variable','Noto Sans KR',sans-serif;fill:#fff;letter-spacing:-.2px}
+.cell .c-st{font:400 7.5px 'JetBrains Mono',monospace;fill:rgba(255,255,255,.42);letter-spacing:1.6px}
+.cell .c-arr{font:400 14px 'JetBrains Mono',monospace;fill:#fff;opacity:0;transition:opacity .3s,transform .35s var(--ease)}
+.cell .c-br{fill:none;stroke:#fff;stroke-width:1;opacity:0;transition:opacity .3s}
+.cell:hover .c-bg,.cell.ping .c-bg{fill:rgba(255,255,255,.06);stroke:#fff}
+.cell:hover .pv{opacity:.5}
+.cell:hover .c-arr{opacity:1;transform:translateX(3px)}
+.cell:hover .c-br{opacity:1}
+.cell.ping .c-bg{transition:none}
+.cell.flag .c-bg{stroke:#fff;stroke-width:1.5;stroke-dasharray:6 4;animation:march .7s linear infinite}
+.cell.flag .c-br{opacity:1;animation:blink 1s steps(2) infinite}
+@keyframes march{to{stroke-dashoffset:-20}}
+.cell[data-id="sky"]{animation:bob 7s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.sonar{fill:none;stroke:#fff;stroke-width:1;transform-box:fill-box;transform-origin:center;animation:sonar 1.6s var(--ease) forwards;pointer-events:none}
+.sonar.s2{animation-delay:.25s;opacity:0}
+.sonar-d{fill:#fff;animation:fadeout 1.6s forwards;pointer-events:none}
+@keyframes sonar{0%{transform:scale(.05);opacity:1}100%{transform:scale(1);opacity:0}}
+@keyframes fadeout{to{opacity:0}}
+.walker{fill:#fff;opacity:.75;pointer-events:none}
+#lift{fill:#fff;pointer-events:none}
+.intro .dr{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.6s var(--ease) forwards}
+.intro .fi{opacity:0;animation:fadein .8s var(--ease) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fadein{to{opacity:1}}
 
-        /* --- LAYOUT --- */
-        header {
-            height: 75px; border-bottom: 2px solid var(--sys-main);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px; background: rgba(10, 10, 10, 0.9); z-index: 500;
-            box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
-        }
+/* ── detail ── */
+#detail{position:absolute;inset:0;display:flex;flex-direction:column;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .5s var(--ease);z-index:6}
+#detail.show{opacity:1;pointer-events:auto}
+#stage.in-detail .st-top{opacity:0;transition:opacity .3s}
+.st-top{transition:opacity .5s}
+.dt-bar{height:50px;flex:none;display:flex;align-items:center;gap:20px;padding:0 28px;border-bottom:1px solid var(--hl)}
+.back{font:500 11.5px var(--sans);color:var(--t2);display:flex;align-items:center;gap:10px;transition:color .2s}
+.back span{display:inline-block;transition:transform .3s var(--ease)}
+.back:hover{color:#fff}
+.back:hover span{transform:translateX(-4px)}
+.crumb{font-size:11.5px;color:var(--t3);display:flex;gap:10px;align-items:center}
+.crumb b{color:#fff;font-weight:500}
+.crumb i{width:12px;height:1px;background:var(--t4)}
+.pager{margin-left:auto;display:flex;align-items:center;gap:14px}
+.pager .n{font:400 11px var(--mono);color:var(--t3);letter-spacing:.1em}
+.pager .n b{color:#fff;font-weight:400}
+.ib{width:28px;height:28px;border:1px solid var(--hl2);display:flex;align-items:center;justify-content:center;font:400 14px var(--mono);color:var(--t2);transition:.25s var(--ease)}
+.ib:hover{background:#fff;color:#000;border-color:#fff}
+.dt-body{flex:1;display:grid;grid-template-columns:1fr 300px;min-height:0}
+#dtplan{position:relative;min-height:0;padding:44px 56px 64px}
+#dtsvg{width:100%;height:100%}
+#dtsvg svg{width:100%;height:100%;display:block}
+.dt-stamp{position:absolute;left:56px;bottom:14px;display:flex;align-items:center;gap:12px;border:1px solid var(--hl2);padding:8px 14px 8px 10px;background:rgba(0,0,0,.6)}
+.dt-stamp img{width:20px;height:20px;object-fit:contain;padding-right:10px;border-right:1px solid var(--hl2);box-sizing:content-box}
+.dt-stamp div{display:flex;flex-direction:column;gap:3px;font:400 7.5px var(--mono);letter-spacing:.14em;color:var(--t3)}
+.dt-stamp b{color:#fff;font-weight:500}
+.dt-hint{position:absolute;right:56px;bottom:20px}
+#ptip{position:absolute;left:0;top:0;pointer-events:none;font:500 11px var(--sans);background:#fff;color:#000;padding:4px 8px;white-space:nowrap;opacity:0;transform:translate(12px,-50%);transition:opacity .15s}
+#ptip.on{opacity:1}
 
-        #main-wrapper {
-            display: grid; grid-template-columns: 400px 1fr 480px;
-            flex: 1; overflow: hidden; gap: 2px; background: rgba(255, 255, 255, 0.05);
-        }
-        .panel { background: rgba(5, 5, 5, 0.95); padding: 30px; overflow-y: auto; position: relative; }
+/* plan styles */
+.pw{fill:none;stroke:#fff;stroke-width:.1;stroke-linecap:square}
+.pwc{fill:rgba(255,255,255,.025);stroke:#fff;stroke-width:.09}
+.pg{stroke:#fff;stroke-width:.05;stroke-dasharray:.1 .12}
+.p-f{fill:rgba(255,255,255,.025);stroke:rgba(255,255,255,.4);stroke-width:.03}
+.p-e{fill:rgba(255,255,255,.08);stroke:rgba(255,255,255,.85);stroke-width:.04}
+.p-d{fill:url(#phatch);stroke:#fff;stroke-width:.05}
+.p-z{fill:none;stroke:rgba(255,255,255,.28);stroke-width:.035;stroke-dasharray:.22 .18}
+.p-zd{fill:none;stroke:rgba(255,255,255,.5);stroke-width:.045;stroke-dasharray:.34 .14 .05 .14}
+.p-sc{fill:url(#phatch);stroke:rgba(255,255,255,.6);stroke-width:.03}
+.p-door{fill:none;stroke:rgba(255,255,255,.4);stroke-width:.025}
+.p-erase{stroke:#000;stroke-width:.22}
+.pzl{fill:rgba(255,255,255,.3);font:400 .3px 'JetBrains Mono',monospace;letter-spacing:.03px}
+.pdim{stroke:rgba(255,255,255,.25);stroke-width:.025}
+.pdt{fill:rgba(255,255,255,.38);font:400 .3px 'JetBrains Mono',monospace;text-anchor:middle;letter-spacing:.03px}
+[data-l]{transition:fill .2s,stroke .2s}
+[data-l]:hover{stroke:#fff;fill:rgba(255,255,255,.18)}
+.co .ci{opacity:0;animation:popin .5s var(--ease) forwards;transform-box:fill-box;transform-origin:center}
+.co rect.b{fill:#000;stroke:#fff;stroke-width:.035;transition:fill .2s}
+.co rect.r{fill:none;stroke:#fff;stroke-width:.03;opacity:0}
+.co text{fill:#fff;font:500 .3px 'JetBrains Mono',monospace;text-anchor:middle;transition:fill .2s}
+.co:hover rect.b,.co.on rect.b{fill:#fff}
+.co:hover text,.co.on text{fill:#000}
+.co.on rect.r{opacity:1;transform-box:fill-box;transform-origin:center;animation:pulse 1.6s var(--ease) infinite}
+@keyframes popin{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
+@keyframes pulse{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.2);opacity:0}}
+.drawing .dr{stroke-dasharray:1;stroke-dashoffset:1;fill-opacity:0;animation:draw 1.2s var(--ease) forwards,fillin .8s .5s forwards}
+@keyframes fillin{to{fill-opacity:1}}
 
-        /* --- LORE LIST (Database) --- */
-        .lore-cat { 
-            font-size: 13px; color: var(--sys-main); margin: 40px 0 12px 0; 
-            border-bottom: 1px solid var(--dimmer); letter-spacing: 2px; font-weight: 900; 
-            text-shadow: 0 0 8px rgba(255,255,255,0.8); 
-        }
-        .lore-cat:first-child { margin-top: 0; }
-        .lore-item { 
-            padding: 12px 15px; font-size: 13px; color: #999; transition: all 0.2s;
-            font-family: 'Noto Sans KR'; line-height: 1.5; border-left: 2px solid transparent; margin-bottom: 2px;
-            position: relative; overflow: hidden;
-        }
-        .lore-item::before {
-            content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, rgba(255,255,255,0.1), transparent);
-            transform: translateX(-100%); transition: 0.3s; z-index: -1;
-        }
-        .lore-item:hover { color: #fff; border-left: 2px solid var(--sys-main); padding-left: 20px; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
-        .lore-item:hover::before { transform: translateX(0); }
+/* readout (horizontal unfold) */
+#ro{position:absolute;left:0;top:0;display:flex;align-items:flex-start;pointer-events:none;z-index:4}
+#ro.flip{flex-direction:row-reverse}
+#ro .lk{width:28px;height:1px;background:#fff;margin-top:1px;transform:scaleX(0);transform-origin:left}
+#ro.flip .lk{transform-origin:right}
+#ro .bx{width:270px;background:rgba(10,10,10,.96);border:1px solid rgba(255,255,255,.5);border-top:1px solid #fff;padding:16px 18px 18px;margin-top:-1px;clip-path:inset(0 100% 0 0);pointer-events:auto}
+#ro.flip .bx{clip-path:inset(0 0 0 100%)}
+#ro .bx>*{opacity:0}
+#ro.open .lk{transform:scaleX(1);transition:transform .22s var(--ease)}
+#ro.open .bx{clip-path:inset(0 0 0 0);transition:clip-path .55s var(--ease) .15s}
+#ro.open .bx>*{opacity:1;transition:opacity .4s .45s}
+#ro h4{font:600 14px var(--sans);margin:7px 0 6px}
+#ro p{font-size:12.5px;line-height:1.75;color:var(--t2);word-break:keep-all}
+#ro .top{display:flex;justify-content:space-between}
+#ro .x{font:400 12px var(--mono);color:var(--t3)}
+#ro .x:hover{color:#fff}
 
-        /* --- CENTER HUD: TACTICAL DISPLAY & MAP --- */
-        #tactical-display { 
-            display: flex; align-items: center; justify-content: center; 
-            background: radial-gradient(circle, #111 0%, #000 100%); overflow: hidden; position: relative;
-        }
-        .radar-ring {
-            position: absolute; border: 1px dashed rgba(255,255,255,0.2); border-radius: 50%; pointer-events: none;
-            animation: rotateRadar 30s linear infinite; box-shadow: inset 0 0 40px rgba(255,255,255,0.02);
-        }
-        @keyframes rotateRadar { 100% { transform: rotate(360deg); } }
+/* info column */
+.dt-info{border-left:1px solid var(--hl);overflow-y:auto;padding:26px 24px 36px;background:rgba(0,0,0,.6);clip-path:inset(0 0 0 100%)}
+#detail.show .dt-info{clip-path:inset(0 0 0 0);transition:clip-path .8s var(--ease) .2s}
+.dt-info .rv{opacity:0;transform:translateY(8px)}
+#detail.show .dt-info .rv{opacity:1;transform:none;transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.di-t{font:600 21px var(--sans);letter-spacing:-.02em;margin:10px 0 4px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--hl);border:1px solid var(--hl);margin:20px 0 18px}
+.stats div{background:#050505;padding:10px 12px}
+.stats b{display:block;margin-top:6px;font:500 12px var(--sans);letter-spacing:-.01em}
+.stats .inv{background:#fff}
+.stats .inv .lbl{color:rgba(0,0,0,.5)}
+.stats .inv b{color:#000}
+.desc{font-size:13px;line-height:1.85;color:var(--t2);word-break:keep-all}
+.kps{list-style:none;margin:12px 0 0;border-top:1px solid var(--hl)}
+.kps li{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--hl);font-size:13px;color:var(--t2);transition:color .2s,padding .3s var(--ease)}
+.kps li span{font:400 10px var(--mono);color:var(--t4);width:18px}
+.kps li i{margin-left:auto;font-style:normal;font-family:var(--mono);opacity:0;transform:translateX(-6px);transition:.3s var(--ease)}
+.kps li:hover,.kps li.on{color:#fff;padding-left:8px}
+.kps li:hover i,.kps li.on i{opacity:1;transform:none}
+.kps li.on span{color:#fff}
+.acts{display:flex;flex-direction:column;gap:8px;margin-top:26px}
 
-        .sweep-line {
-            position: absolute; width: 50%; height: 1px; background: linear-gradient(90deg, transparent, var(--sys-main));
-            top: 50%; left: 50%; transform-origin: 0 0; animation: sweep 5s linear infinite; pointer-events: none;
-            box-shadow: 0 0 15px rgba(255,255,255,0.5);
-        }
-        @keyframes sweep { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+/* buttons */
+.btn{display:flex;align-items:center;justify-content:space-between;width:100%;padding:11px 14px;font:500 12px var(--sans);border:1px solid var(--hl2);color:var(--fg);transition:.3s var(--ease);position:relative;overflow:hidden}
+.btn::after{content:'→';font-family:var(--mono);transition:transform .3s var(--ease)}
+.btn:hover::after{transform:translateX(4px)}
+.btn:hover{border-color:#fff}
+.btn.pri{background:#fff;color:#000;border-color:#fff}
+.btn.pri:hover{background:transparent;color:#fff}
+.tl{font:500 10px var(--mono);letter-spacing:.16em;color:var(--t3);text-transform:uppercase;transition:color .2s}
+.tl:hover{color:#fff}
 
-        /* 로고 애니메이션 */
-        @keyframes pulseLogo { 
-            0% { opacity: 0.05; transform: scale(0.98); } 
-            50% { opacity: 0.15; transform: scale(1.02); filter: drop-shadow(0 0 15px rgba(255,255,255,0.6)); } 
-            100% { opacity: 0.05; transform: scale(0.98); } 
-        }
+/* lore overlay: line → unfold */
+#lore{position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0);pointer-events:none;transition:background .4s}
+#lore.open{background:rgba(0,0,0,.7);pointer-events:auto}
+.lo-wrap{position:relative;width:min(580px,86%)}
+.lo-line{position:absolute;left:-8%;right:-8%;top:50%;height:1px;background:linear-gradient(90deg,transparent,#fff 15%,#fff 85%,transparent);transform:scaleX(0);transition:transform .3s var(--ease) .32s;z-index:2}
+#lore.open .lo-line{transform:scaleX(1);opacity:0;transition:transform .4s var(--ease),opacity .3s .8s}
+.lo-box{background:#060606;border:1px solid rgba(255,255,255,.5);clip-path:inset(50% 0 50% 0);transition:clip-path .35s var(--ease);max-height:76vh;overflow-y:auto}
+#lore.open .lo-box{clip-path:inset(0 0 0 0);transition:clip-path .6s var(--ease) .32s}
+.lo-h{display:flex;align-items:center;justify-content:space-between;padding:16px 26px;border-bottom:1px solid var(--hl)}
+.lo-h .l{display:flex;align-items:center;gap:12px}
+.lo-h img{width:16px;height:16px;opacity:.8}
+.lo-b{padding:24px 26px 6px}
+#lo-t{font:600 20px var(--sans);letter-spacing:-.02em;min-height:1.3em}
+#lo-body{margin-top:14px;font-size:13.5px;line-height:1.95;color:var(--t2);white-space:pre-wrap;word-break:keep-all;opacity:0;transform:translateY(6px);transition:.5s var(--ease)}
+#lore.open #lo-body{opacity:1;transform:none;transition-delay:.75s}
+.lo-f{display:flex;flex-wrap:wrap;gap:8px;padding:18px 26px 24px}
+.lo-f .btn{width:auto;flex:1;min-width:200px}
 
-        /* --- INTERACTIVE MAP NODES --- */
-        #map-container { position: absolute; width: 85%; height: 85%; z-index: 20; }
-        .map-node {
-            position: absolute; transform: translate(-50%, -50%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .node-dot {
-            width: 10px; height: 10px; background: var(--sys-main); border-radius: 50%;
-            box-shadow: 0 0 10px var(--sys-main), 0 0 20px var(--sys-main);
-            animation: pulseNode 2s infinite; pointer-events: auto; transition: 0.2s;
-        }
-        .map-node:hover .node-dot { transform: scale(1.8); background: #fff; box-shadow: 0 0 25px #fff; }
-        .node-label {
-            margin-top: 10px; font-size: 11px; color: var(--sys-main); letter-spacing: 1px;
-            background: rgba(0,0,0,0.8); padding: 4px 8px; border: 1px solid rgba(255,255,255,0.4);
-            pointer-events: none; text-shadow: 0 0 5px var(--sys-main);
-        }
-        @keyframes pulseNode { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.8); } 70% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
+/* ── sidebar ── */
+.bar-l span{position:absolute;top:0;transform:translateX(-50%)}
+.kps li span{text-align:center}
+#side{border-left:1px solid var(--hl);display:flex;flex-direction:column;min-height:0;background:var(--bg)}
+.tabs{flex:none;display:flex;position:relative;border-bottom:1px solid var(--hl);padding:0 24px}
+.tabs button{padding:15px 0 13px;margin-right:24px;font:500 9.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--t3);transition:color .2s}
+.tabs button:hover,.tabs button.on{color:#fff}
+.tabs button sup{font-size:9px;color:var(--t4);margin-left:5px}
+.ink{position:absolute;bottom:-1px;height:1px;background:#fff;transition:left .45s var(--ease),width .45s var(--ease)}
+.pane{flex:1;overflow-y:auto;min-height:0;display:none}
+.pane.on{display:block;animation:paneIn .5s var(--ease)}
+@keyframes paneIn{from{opacity:0;transform:translateX(10px)}}
 
-        /* --- DATA OVERLAY (Pop-up) --- */
-        #data-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); display: none; padding: 60px 80px; z-index: 1000; 
-            border: 1px solid var(--sys-main); backdrop-filter: blur(5px);
-            overflow-y: auto;
-        }
-        #ov-title { font-size: 30px; font-weight: 900; margin-bottom: 25px; border-bottom: 2px solid var(--sys-main); padding-bottom: 15px; letter-spacing: 2px; text-shadow: 0 0 15px var(--sys-main); color: #fff;}
-        #ov-content { font-size: 14px; line-height: 1.9; color: #ddd; font-family: 'Noto Sans KR'; white-space: pre-wrap; word-break: keep-all; }
+.search{position:sticky;top:0;background:var(--bg);z-index:2;padding:16px 24px 10px}
+.search label{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--hl2);padding:8px 0;transition:border-color .2s}
+.search label:focus-within{border-color:#fff}
+.search input{flex:1;font-size:13px;outline:none}
+.search input::placeholder{color:var(--t4)}
+.kbd{font:400 10px var(--mono);color:var(--t3);border:1px solid var(--hl2);padding:1px 5px}
+.cat{padding:0 24px}
+.cat-h{display:flex;align-items:center;gap:12px;width:100%;padding:18px 0 10px;text-align:left}
+.cat-h .n{font:400 10px var(--mono);color:var(--t4)}
+.cat-h .nm{font-size:11px;font-weight:600;color:var(--t2);letter-spacing:.02em}
+.cat-h .c{margin-left:auto;font:400 10px var(--mono);color:var(--t4)}
+.cat-h .ar{width:7px;height:7px;border-right:1px solid var(--t3);border-bottom:1px solid var(--t3);transform:rotate(45deg) translate(-2px,-2px);transition:transform .3s var(--ease)}
+.cat.closed .ar{transform:rotate(-45deg)}
+.cat-b{overflow:hidden;display:grid;grid-template-rows:1fr;transition:grid-template-rows .45s var(--ease)}
+.cat.closed .cat-b{grid-template-rows:0fr}
+.cat-b>div{min-height:0}
+.li{display:flex;align-items:center;gap:0;width:100%;padding:7px 0;font-size:13px;color:var(--t2);text-align:left;transition:color .2s}
+.li::before{content:'';width:0;height:1px;background:#fff;transition:width .35s var(--ease),margin .35s var(--ease)}
+.li:hover,.li.on{color:#fff}
+.li:hover::before,.li.on::before{width:14px;margin-right:10px}
+.li .rm{margin-left:auto;font:400 9px var(--mono);color:var(--t4);letter-spacing:.12em;border:1px solid var(--hl2);padding:2px 5px}
+.empty{padding:40px 24px;color:var(--t3);font-size:13px}
 
-        /* --- RIGHT HUD: MISSION & ANALYTICS --- */
-        .hud-gauge-group { display: flex; gap: 10px; margin-bottom: 25px; justify-content: space-between; }
-        .info-box {
-            flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--dimmer); padding: 15px 10px;
-            text-align: center; font-size: 10px; color: var(--dim); letter-spacing: 1px;
-        }
-        .info-val { display: block; font-size: 22px; color: #fff; font-weight: 900; margin-top: 5px; text-shadow: 0 0 10px rgba(255,255,255,0.8); }
+/* ops */
+.ops{padding:22px 24px 30px}
+.sync{padding-bottom:22px;border-bottom:1px solid var(--hl)}
+.sync-v{display:flex;align-items:baseline;justify-content:space-between;margin-top:12px}
+#sync-val{font:200 38px var(--sans);letter-spacing:-.03em;line-height:1}
+#sync-val small{font-size:18px;color:var(--t3);margin-left:2px}
+#sync-grade{font:500 10px var(--mono);letter-spacing:.14em;color:var(--t3)}
+.bar{position:relative;height:2px;background:var(--hl2);margin-top:14px}
+#sync-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:#fff;transition:width 1.4s var(--ease)}
+.bar i{position:absolute;top:-3px;width:1px;height:8px;background:var(--t3)}
+.bar-l{position:relative;height:12px;margin-top:8px;font:400 9px var(--mono);color:var(--t4);letter-spacing:.08em}
+.seg{display:flex;margin:22px 0 20px;border:1px solid var(--hl2);position:relative}
+.seg button{flex:1;padding:8px 0;font:500 9px var(--mono);letter-spacing:.14em;color:var(--t3);position:relative;z-index:1;transition:color .3s}
+.seg button.on{color:#000}
+.seg .knob{position:absolute;top:0;bottom:0;background:#fff;transition:left .45s var(--ease),width .45s var(--ease)}
+.fld{margin-bottom:16px}
+.fld .lbl{display:block;margin-bottom:4px}
+.fld input,.fld select{width:100%;border-bottom:1px solid var(--hl2);padding:8px 0;font-size:13px;outline:none;-webkit-appearance:none;appearance:none;border-radius:0;transition:border-color .2s}
+.fld input:focus,.fld select:focus{border-color:#fff}
+.fld input::placeholder{color:var(--t4)}
+.fld select{background-image:linear-gradient(45deg,transparent 50%,#fff 50%),linear-gradient(135deg,#fff 50%,transparent 50%);background-position:calc(100% - 9px) 55%,calc(100% - 4px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:24px}
+.fld select option{background:#0a0a0a;color:#fff}
+.hidden{display:none!important}
+.term-h{display:flex;align-items:center;gap:14px;margin-top:26px;margin-bottom:10px}
+.term-h .sp{flex:1}
+#term{background:var(--s1);padding:16px;font:400 11px/1.8 var(--mono);color:var(--t2);height:300px;overflow-y:auto;white-space:pre-wrap;word-break:keep-all;user-select:text}
+#term .ai{display:block;padding:12px 0;border-bottom:1px solid var(--hl);white-space:normal;font:400 13px var(--sans);color:var(--t2);transition:color .2s,padding .3s var(--ease)}
+#term .ai:hover{color:#fff;padding-left:6px}
+#term .ai small{display:block;font:400 10px var(--mono);color:var(--t4);margin-bottom:4px;letter-spacing:.1em}
+#term .bk{display:inline-block;margin-bottom:12px;font:500 10px var(--mono);letter-spacing:.14em;color:#fff}
+#acts{display:flex;gap:16px;opacity:0;pointer-events:none;transition:opacity .3s}
+#acts.show{opacity:1;pointer-events:auto}
 
-        .sync-section { margin-bottom: 30px; }
-        #sync-bar { width: 100%; height: 2px; background: rgba(255,255,255,0.2); margin-top: 10px; position: relative; overflow: hidden; }
-        #sync-fill { width: 0%; height: 100%; background: var(--sys-main); box-shadow: 0 0 20px var(--sys-main); transition: width 1.5s cubic-bezier(0.2, 1, 0.3, 1); }
+/* toast */
+#toast{position:fixed;left:50%;top:62px;z-index:30000;transform:translateX(-50%);display:flex;align-items:center;gap:10px;font:500 10px var(--mono);letter-spacing:.16em;color:#000;background:#fff;padding:10px 16px;clip-path:inset(0 50% 0 50%);transition:clip-path .45s var(--ease)}
+#toast.show{clip-path:inset(0 0 0 0)}
+#toast img{width:14px;height:14px;object-fit:contain}
 
-        .input-group { margin-bottom: 15px; }
-        .input-label { font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-bottom: 5px; display: block; }
-        input, select { 
-            width: 100%; background: rgba(0,0,0,0.8); border: 1px solid var(--dimmer); color: #fff; 
-            padding: 14px; font-family: inherit; font-size: 13px; transition: 0.3s;
-        }
-        input:focus, select:focus { border-color: var(--sys-main); box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); outline: none; }
-        
-        button { 
-            width: 100%; padding: 18px; background: transparent; color: var(--sys-main); border: 1px solid var(--sys-main); 
-            font-weight: 900; letter-spacing: 4px; transition: 0.3s; margin-top: 10px; text-shadow: 0 0 8px var(--sys-main);
-            position: relative; overflow: hidden;
-        }
-        button:hover { background: var(--sys-main); color: #000; box-shadow: 0 0 25px var(--sys-main); text-shadow: none; }
-        button::before {
-            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
-            transition: 0.5s;
-        }
-        button:hover::before { left: 100%; }
+/* ── boot ── */
+#boot{position:fixed;inset:0;z-index:40000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.bh{position:absolute;left:0;right:0;height:50.5%;background:#000;transition:transform 1s var(--ease)}
+.bh.t{top:0}.bh.b{bottom:0}
+#boot.split .bh.t{transform:translateY(-100%)}
+#boot.split .bh.b{transform:translateY(100%)}
+.bcol{position:relative;display:flex;flex-direction:column;align-items:center;transition:opacity .45s var(--ease),transform .6s var(--ease)}
+#boot.out .bcol{opacity:0;transform:scale(.94)}
+.bc{position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center}
+.b-x,.b-y{position:absolute;left:50%;top:50%;background:#fff;pointer-events:none}
+.b-x{width:100vw;height:1px;margin-left:-50vw;transform:scaleX(0);background:linear-gradient(90deg,transparent,rgba(255,255,255,.9) 35%,rgba(255,255,255,.9) 65%,transparent);transition:transform 1s var(--ease),opacity .6s}
+.b-y{height:100vh;width:1px;margin-top:-50vh;transform:scaleY(0);background:linear-gradient(180deg,transparent,rgba(255,255,255,.7) 35%,rgba(255,255,255,.7) 65%,transparent);transition:transform 1s var(--ease) .15s,opacity .6s}
+#boot.s1 .b-x{transform:scaleX(1)}
+#boot.s1 .b-y{transform:scaleY(1)}
+#boot.s3 .b-x,#boot.s3 .b-y{opacity:.18}
+.b-ring{position:absolute;inset:0;overflow:visible}
+.b-ring .r1{fill:none;stroke:#fff;stroke-width:1;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.4s var(--ease)}
+#boot.s2 .r1{stroke-dashoffset:0}
+.b-ring .r2{fill:none;stroke:rgba(255,255,255,.35);stroke-width:1;stroke-dasharray:2 7;opacity:0;transition:opacity .8s;transform-origin:110px 110px;animation:spin 24s linear infinite}
+#boot.s2 .r2{opacity:1}
+.b-ring .tk{stroke:#fff;stroke-width:1;opacity:0;transition:opacity .2s}
+#boot.s2 .tk{opacity:.5}
+.b-logo{width:104px;height:104px;object-fit:contain;position:relative;clip-path:inset(50% 0 50% 0);opacity:0;filter:brightness(4) blur(3px);transition:clip-path .9s var(--ease),filter 1s var(--ease),opacity .2s}
+#boot.s3 .b-logo{clip-path:inset(0 0 0 0);opacity:1;filter:none;animation:glitch .5s steps(1) .1s}
+@keyframes glitch{0%{transform:translate(3px,0)}20%{transform:translate(-3px,1px)}40%{transform:translate(2px,-1px);opacity:.6}60%{transform:none;opacity:1}80%{transform:translate(-1px,0)}100%{transform:none}}
+.b-scan{position:absolute;left:10%;right:10%;height:1px;background:#fff;box-shadow:0 0 12px #fff;top:50%;opacity:0}
+#boot.s3 .b-scan{animation:scanlogo .9s var(--ease) forwards}
+@keyframes scanlogo{0%{top:50%;opacity:1}50%{top:12%;opacity:1}100%{top:88%;opacity:0}}
+.b-word{margin-top:30px;font:700 26px var(--disp);letter-spacing:.7em;margin-right:-.7em;opacity:0;transition:opacity .3s;min-height:32px}
+#boot.s4 .b-word{opacity:1}
+.b-sub{margin-top:12px;opacity:0;transition:opacity .6s .2s}
+#boot.s4 .b-sub{opacity:1}
+.b-meter{width:240px;height:1px;background:rgba(255,255,255,.14);margin-top:34px;position:relative;overflow:hidden}
+.b-meter i{position:absolute;left:0;top:0;bottom:0;width:0;background:#fff}
+#boot.s5 .b-meter i{width:100%;transition:width 1.1s cubic-bezier(.7,0,.2,1)}
+#blog{width:240px;height:64px;margin-top:14px;font:400 10px/1.6 var(--mono);color:var(--t3);white-space:pre}
+#blog b{color:#fff;font-weight:400}
+.b-skip{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);opacity:.5}
+#boot.out .b-skip{opacity:0}
 
-        #ooc-terminal {
-            flex: 1; margin-top: 25px; background: rgba(10, 10, 10, 0.8); border: 1px solid var(--dimmer);
-            padding: 20px; font-family: monospace; font-size: 12px; height: 240px; overflow-y: auto;
-            color: #ccc; line-height: 1.7; white-space: pre-wrap; box-shadow: inset 0 0 30px rgba(0,0,0,1);
-        }
+/* app reveal */
+body:not(.ready) header>*{opacity:0;transform:translateY(-8px)}
+body.ready header>*{transition:opacity .8s var(--ease),transform .8s var(--ease)}
+body.ready header>*:nth-child(2){transition-delay:.12s}
+body.ready header>*:nth-child(3){transition-delay:.24s}
+body:not(.ready) #side{opacity:0;transform:translateX(30px)}
+body.ready #side{transition:opacity .9s var(--ease) .25s,transform .9s var(--ease) .25s}
+body:not(.ready) .st-top,body:not(.ready) .st-bot{opacity:0}
+body.ready .st-top{transition:opacity 1s .4s}
 
-        /* --- MODE TABS --- */
-        .mode-tabs {
-            display: flex; margin-bottom: 20px; gap: 2px;
-            background: rgba(255,255,255,0.05); padding: 2px;
-            border: 1px solid var(--dimmer);
-        }
-        .mode-tab {
-            flex: 1; text-align: center; padding: 11px 4px;
-            font-size: 10px; letter-spacing: 2px; color: var(--dim);
-            transition: 0.25s; font-weight: 900;
-            border: 1px solid transparent;
-        }
-        .mode-tab:hover { color: #fff; text-shadow: 0 0 5px #fff; }
-        .mode-tab.active {
-            color: #000; background: var(--sys-main);
-            text-shadow: none; box-shadow: 0 0 15px rgba(255,255,255,0.5);
-        }
-        .hidden { display: none !important; }
-
-        /* --- INTERNAL NOTIFICATION --- */
-        #system-notif {
-            position: fixed; bottom: 30px; right: 30px; width: 350px;
-            background: rgba(255, 255, 255, 0.95); color: #000; padding: 18px 25px; font-weight: 900;
-            display: none; z-index: 11000; letter-spacing: 1px; font-size: 12px;
-            border-left: 5px solid #000; box-shadow: 0 10px 30px rgba(255,255,255,0.2);
-        }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        /* --- SCREEN CAPTURE BUTTON --- */
-        #capture-btn {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            font-size: 11px;
-            color: var(--dim);
-            border: 1px solid var(--dimmer);
-            padding: 8px 15px;
-            background: rgba(0,0,0,0.8);
-            z-index: 10000;
-            letter-spacing: 2px;
-            font-weight: 900;
-            transition: 0.3s;
-            box-shadow: 0 0 10px rgba(255,255,255,0.05);
-        }
-        #capture-btn:hover {
-            color: #000;
-            background: #fff;
-            border-color: #fff;
-            box-shadow: 0 0 15px #fff;
-        }
-
-        /* --- BOOTING --- */
-        #boot-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 20000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .loading-text { font-size: 18px; letter-spacing: 12px; color: var(--sys-main); font-weight: 700; margin-bottom: 20px; animation: textGlitch 0.1s infinite; text-shadow: 0 0 15px var(--sys-main); }
-        .loading-bar { width: 400px; height: 1px; background: rgba(255,255,255,0.2); position: relative; }
-        .loading-fill { height: 100%; background: var(--sys-main); width: 0%; box-shadow: 0 0 20px var(--sys-main); animation: fillBar 1.5s forwards ease-in-out; }
-
-        /* 부팅 로그 타이핑 (idea 6) */
-        #boot-screen { transition: opacity 0.5s ease; }
-        #boot-log {
-            margin-top: 22px; width: 400px; max-width: 80vw; height: 130px;
-            font-family: monospace; font-size: 11px; line-height: 1.85;
-            color: rgba(255,255,255,0.65); text-align: left; white-space: pre-wrap;
-        }
-        #boot-log .ok { color: #fff; text-shadow: 0 0 6px #fff; }
-        #boot-log .crit { color: #fff; text-shadow: 0 0 8px #fff; animation: textGlitch 0.3s infinite; }
-        .boot-caret { animation: caretBlink 0.8s step-end infinite; }
-        @keyframes caretBlink { 50% { opacity: 0; } }
-
-        /* 터미널 문서 복사/저장 버튼 (idea 2) */
-        #doc-actions { display: none; gap: 8px; margin-top: 10px; }
-        #doc-actions.show { display: flex; }
-        .doc-btn {
-            flex: 1; margin-top: 0; padding: 11px; font-size: 10px; letter-spacing: 2px;
-        }
-        
-        @keyframes textGlitch { 
-            0% { transform: translate(0) } 
-            20% { transform: translate(-2px, 1px) } 
-            40% { transform: translate(-1px, -1px) } 
-            60% { transform: translate(2px, 1px) } 
-            80% { transform: translate(1px, -1px) } 
-            100% { transform: translate(0) } 
-        }
-        @keyframes fillBar { 100% { width: 100%; } }
-
-        /* --- TOUCH DEVICES: 커스텀 커서 비활성 & 기본 커서 복원 --- */
-        @media (hover: none), (pointer: coarse) {
-            * { cursor: auto !important; }
-            #cursor { display: none !important; }
-        }
-
-        /* --- RESPONSIVE FALLBACK (<=1024px): 3단 그리드를 세로 스택으로 --- */
-        @media (max-width: 1024px) {
-            body { height: auto; min-height: 100vh; overflow-y: auto; }
-            header { height: auto; flex-wrap: wrap; gap: 12px; padding: 15px 20px; }
-            #main-wrapper { grid-template-columns: 1fr; overflow: visible; }
-            .panel { overflow-y: visible; }
-            #tactical-display { min-height: 520px; }
-        }
-    </style>
+@media (hover:none),(pointer:coarse){*{cursor:auto!important}#cursor,#cur-dot{display:none!important}}
+@media (max-width:1180px){.status .st:nth-child(n+3){display:none}#main{grid-template-columns:1fr 340px}}
+#mnav,.dt-name{display:none}
+@media (max-width:900px){
+  html,body{height:100%;overflow:hidden}
+  body{height:100dvh}
+  header{height:52px;padding:0 16px;gap:12px;padding-top:env(safe-area-inset-top);height:calc(52px + env(safe-area-inset-top))}
+  .status,.brand .lbl,.hr .lbl{display:none}
+  .hr{padding-left:0;border:none;margin-left:auto;gap:6px}
+  .opt-k{display:none!important}
+  .tbtn{margin-left:4px}
+  #clock{font-size:12px}
+  .tbtn{padding:6px 9px}
+  #main{display:block;position:relative;flex:1;min-height:0}
+  #stage,#side{position:absolute;inset:0;border:none!important}
+  body[data-view="map"] #side,body:not([data-view="map"]) #stage{display:none}
+  #stage{overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch}
+  #bg{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none}
+  #xh{display:none}
+  .st-top{position:relative;left:auto;right:auto;top:auto;padding:26px 20px 4px;flex:none}
+  .st-top h1{font-size:28px;letter-spacing:.38em;margin:8px 0 6px}
+  .st-top p{font-size:12.5px}
+  .radar,.frame,.ruler{display:none}
+  .emblem{top:360px;width:300px;position:absolute}
+  .st-top h1 img{width:24px;height:24px}
+  .dt-stamp{left:14px;bottom:6px}
+  #keys{display:none}
+  .pager .ib.w{display:none}
+  #sec{position:relative;inset:auto;flex:none;width:100%;aspect-ratio:400/940;padding:0 10px;margin-top:6px}
+  #sec.zoom{transform:scale(1.6)}
+  #beam{left:0;right:0}
+  .cell .c-name{font-size:15px}
+  .kps li{font-size:14px}
+  .li{font-size:14.5px;padding:11px 0}
+  .cell .c-code,.cell .c-st{font-size:9.5px}
+  .cell .c-arr{opacity:.55}
+  .s-lv{font-size:11px}
+  .st-bot{position:relative;left:auto;right:auto;bottom:auto;flex:none;padding:10px 20px 28px}
+  .legend,#coords{display:none}
+  .ev .x{font-size:12px}
+  .ev .t{display:none}
+  /* sidebar views */
+  #side{display:flex;flex-direction:column}
+  .tabs{display:none}
+  body[data-view="db"] #pane-db,body[data-view="ops"] #pane-ops{display:block!important;animation:paneIn .45s var(--ease)}
+  body[data-view="db"] #pane-ops,body[data-view="ops"] #pane-db{display:none!important}
+  .search{padding:16px 20px 10px}
+  .cat{padding:0 20px}
+  .li{padding:12px 0;font-size:15px}
+  .cat-h{padding:20px 0 8px}
+  .ops{padding:22px 20px 40px}
+  #term{height:auto;min-height:260px;max-height:none}
+  .fld input,.fld select{font-size:16px;padding:11px 0}
+  .btn{padding:16px}
+  /* bottom nav */
+  #mnav{display:grid;grid-template-columns:repeat(3,1fr);flex:none;border-top:1px solid var(--hl2);background:#000;padding-bottom:env(safe-area-inset-bottom);position:relative;z-index:22}
+  #mnav button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0 9px;color:var(--t3);font-size:11px;position:relative;transition:color .25s}
+  #mnav button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.3}
+  #mnav button::before{content:'';position:absolute;top:-1px;left:30%;right:30%;height:1px;background:#fff;transform:scaleX(0);transition:transform .4s var(--ease)}
+  #mnav button.on{color:#fff}
+  #mnav button.on::before{transform:scaleX(1)}
+  /* detail as full-screen sheet */
+  #detail{position:fixed;inset:0;z-index:25;background:#000;display:block;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .dt-bar{position:sticky;top:0;z-index:3;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);height:auto;min-height:56px;padding:env(safe-area-inset-top) 12px 0;gap:10px}
+  .crumb{display:none}
+  .dt-name{display:block;font-size:15px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .back{padding:10px 6px;font-size:13px}
+  .pager{margin-left:0;gap:8px}
+  .pager .n{display:none}
+  .ib{width:40px;height:40px}
+  .dt-body{display:block}
+  #dtplan{height:auto;aspect-ratio:1/0.9;max-height:60vh;padding:18px 10px 30px}
+  .dt-hint{display:none}
+  .dt-stamp{left:18px;bottom:8px}
+  .dt-info{border:none;border-top:1px solid var(--hl);padding:24px 20px calc(120px + env(safe-area-inset-bottom));clip-path:none!important;background:#000}
+  .di-t{font-size:24px}
+  .kps li{padding:15px 2px;font-size:15px}
+  .stats b{font-size:13.5px}
+  /* readout: bottom sheet, unfolding horizontally */
+  #ro{position:fixed;left:12px!important;right:12px;top:auto!important;bottom:calc(14px + env(safe-area-inset-bottom));z-index:30}
+  #ro .lk{display:none}
+  #ro .bx{width:auto;flex:1;background:#0a0a0a;box-shadow:0 -10px 40px rgba(0,0,0,.9);padding:18px 18px 20px}
+  #ro h4{font-size:16px}
+  #ro p{font-size:14px}
+  #ro .x{font-size:18px;padding:0 4px}
+  /* lore: full-screen overlay */
+  #lore{position:fixed;z-index:30;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom))}
+  .lo-wrap{width:100%}
+  .lo-box{max-height:calc(100dvh - 40px)}
+  .lo-h{padding:14px 18px}
+  .lo-b{padding:22px 20px 6px}
+  #lo-t{font-size:21px}
+  #lo-body{font-size:14.5px;line-height:1.9}
+  .lo-f{padding:18px 20px 22px}
+  .lo-f .btn{min-width:0;width:100%}
+  #toast{top:calc(62px + env(safe-area-inset-top));max-width:calc(100vw - 32px)}
+  /* boot sizing */
+  .bc{width:180px;height:180px}
+  .b-logo{width:84px;height:84px}
+  .b-word{font-size:22px}
+}
+</style>
 </head>
 <body>
+<div id="cur-dot"></div><div id="cursor"><i></i><i></i><i></i><i></i><b>LOCK</b></div>
 
-<div id="cursor"></div>
-<div id="boot-screen">
-    <div class="loading-text">ARCH_CORE_INITIALIZING</div>
-    <div class="loading-bar"><div class="loading-fill"></div></div>
-    <div id="boot-log"></div>
+<div id="boot" onclick="skipBoot()">
+  <div class="bh t"></div><div class="bh b"></div>
+  <div class="bcol">
+    <div class="bc">
+      <i class="b-x"></i><i class="b-y"></i>
+      <svg class="b-ring" viewBox="0 0 220 220"><circle class="r1" cx="110" cy="110" r="106" pathLength="1"/><circle class="r2" cx="110" cy="110" r="92"/><g id="bticks"></g></svg>
+      <img class="b-logo" src="「ARCH」 Symbol Logo White Ver.png" alt="" onerror="this.style.visibility='hidden'">
+      <i class="b-scan"></i>
+    </div>
+    <div class="b-word" id="bword"></div>
+    <div class="b-sub lbl">Strategic Command · Aegis Node</div>
+    <div class="b-meter"><i></i></div>
+    <div id="blog"></div>
+  </div>
+  <div class="b-skip lbl">Click to skip</div>
 </div>
-<div id="system-notif">>> SYSTEM_MESSAGE</div>
 
-<div id="capture-btn" onclick="captureScreen()">[ REC ]</div>
-
-<div class="scanline"></div>
-<div class="noise-bg"></div>
+<div id="toast"></div>
 
 <header>
-    <div style="display:flex; align-items:center; gap:20px;">
-        <img src="「ARCH」 Symbol Logo White Ver.png" alt="ARCH Logo" style="height: 35px; width: 35px; filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.9));">
-        <span style="font-size: 26px; font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.7); letter-spacing: 2px;">ARCH</span>
-        <span style="font-weight:500; letter-spacing:6px; font-size:14px; color:var(--dim);">| STRATEGIC_COMMAND</span>
-    </div>
-    <div style="text-align:right; font-size:11px; color:var(--dim); line-height:1.6; font-family:monospace;">
-        SYSTEM: <span style="color:#fff; text-shadow: 0 0 5px #fff;">ONLINE</span> // ENCRYPTION: <span style="color:#fff;">ACTIVE</span><br>
-        <span id="clock" style="color:#fff;">00:00:00</span> KST
-    </div>
+  <div class="brand" onclick="goHome()" title="메인 화면">
+    <img src="「ARCH」 Symbol Logo White Ver.png" alt="ARCH" onerror="this.style.display='none'">
+    <span class="wm">ARCH</span>
+    <span class="lbl">Strategic Command</span>
+  </div>
+  <div class="status">
+    <div class="st"><span class="lbl">Threat</span><b class="chip">CRITICAL</b></div>
+    <div class="st"><span class="lbl">Operators</span><b id="agent-count">423</b></div>
+    <div class="st"><span class="lbl">Core</span><b>STABLE</b></div>
+    <div class="st"><span class="lbl">Link</span><b>ENCRYPTED</b></div>
+  </div>
+  <div class="hr"><span id="clock">00:00:00</span><span class="lbl">KST</span><button class="tbtn" id="capture-btn" onclick="captureScreen()"><i></i>REC</button><button class="tbtn opt-k" onclick="toggleKeys()">?</button></div>
 </header>
 
-<div id="main-wrapper">
-    <div class="panel">
-        <div style="font-size: 16px; font-weight:900; border-bottom:2px solid var(--sys-main); padding-bottom:12px; margin-bottom:20px; letter-spacing: 2px; color: #fff; text-shadow: 0 0 10px var(--sys-main);">WORLD_DATABASE</div>
-        <div id="lore-list"></div>
+<div id="main">
+  <section id="stage">
+    <canvas id="bg"></canvas>
+    <div id="xh"><i class="h"></i><i class="v"></i></div>
+
+    <div class="st-top">
+      <div>
+        <div class="lbl">Facility — Cross Section</div>
+        <h1><img src="「ARCH」 Symbol Logo White Ver.png" alt="" onerror="this.style.display='none'">AEGIS</h1>
+        <p>해상 이동 요새 · 구역을 선택하면 내부 도면이 열립니다</p>
+      </div>
+      <div class="radar"><canvas id="radar"></canvas><span class="lbl" id="radar-l">Proximity · 0 Contacts</span></div>
     </div>
 
-    <div id="tactical-display" class="panel">
-        <div class="radar-ring" style="width:300px; height:300px; border-top: 2px solid #fff;"></div>
-        <div class="radar-ring" style="width:450px; height:450px; border-bottom: 1px solid rgba(255,255,255,0.5); animation-direction: reverse; animation-duration: 40s;"></div>
-        <div class="radar-ring" style="width:650px; height:650px; border-left: 1px solid rgba(255,255,255,0.2); animation-duration: 50s;"></div>
-        <div class="radar-ring" style="width:850px; height:850px; border-right: 1px dashed rgba(255,255,255,0.1); animation-direction: reverse;"></div>
-        <div class="sweep-line"></div>
-        
-        <div style="text-align:center; position:absolute; z-index:10; pointer-events:none; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center;">
-            <img src="「ARCH」 Symbol Logo White Ver.png" alt="AEGIS CORE" style="width: 150px; animation: pulseLogo 5s infinite;">
-            <div style="font-size:45px; font-weight:900; letter-spacing:20px; color:#fff; opacity:0.08; margin-top: 15px;">AEGIS</div>
-        </div>
+    <div class="emblem"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="96"/><circle class="e2" cx="100" cy="100" r="86"/></svg><img src="「ARCH」 Symbol Logo White Ver.png" alt="" onerror="this.style.display='none'"></div>
+    <div class="frame"><i></i><i></i><i></i><i></i></div><div class="ruler l"></div><div class="ruler r"></div>
+    <div id="sec"><div id="beam"></div></div>
 
-        <div id="map-container">
-            <div class="map-node" style="top: 48%; left: 50%;" onclick="showLore('loc_aegis')">
-                <div class="node-dot" style="background:#fff; box-shadow: 0 0 25px #fff; width: 14px; height: 14px;"></div>
-                <div class="node-label" style="font-weight:bold;">센트럴 코어 / 관제탑</div>
-            </div>
-            <div class="map-node" style="top: 15%; left: 50%;" onclick="showLore('loc_sky')">
-                <div class="node-dot"></div>
-                <div class="node-label">하늘정원</div>
-            </div>
-            <div class="map-node" style="top: 30%; left: 75%;" onclick="showLore('loc_dome')">
-                <div class="node-dot"></div>
-                <div class="node-label">특별통제 훈련장</div>
-            </div>
-            <div class="map-node" style="top: 70%; left: 25%;" onclick="showLore('loc_harmony')">
-                <div class="node-dot"></div>
-                <div class="node-label">하모니 상담실</div>
-            </div>
-            <div class="map-node" style="top: 80%; left: 75%;" onclick="showLore('loc_stab')">
-                <div class="node-dot" style="background:#fff; box-shadow: 0 0 15px #fff; animation: textGlitch 0.5s infinite;"></div>
-                <div class="node-label" style="color:#fff; border-color:#fff; text-shadow:0 0 10px #fff;">비상 안정화실</div>
-            </div>
-            <div class="map-node" style="top: 35%; left: 20%;" onclick="showLore('loc_medical')">
-                <div class="node-dot"></div>
-                <div class="node-label">의무실 / 개인실</div>
-            </div>
-            <div class="map-node" style="top: 60%; left: 85%;" onclick="showLore('loc_lounge')">
-                <div class="node-dot"></div>
-                <div class="node-label">라운지</div>
-            </div>
-        </div>
-
-        <div id="data-overlay">
-            <div style="text-align:right; margin-bottom:30px;">
-                <button onclick="closeLore()" style="width:auto; padding:10px 40px; margin:0; border:1px solid #fff;">[ CLOSE_DATA ]</button>
-            </div>
-            <div id="ov-title">TITLE</div>
-            <div id="ov-content">CONTENT</div>
-        </div>
+    <div class="st-bot" id="st-bot">
+      <div id="evlog"></div>
+      <div class="legend lbl"><span><i></i>Sector</span><span><i class="h"></i>Hazard</span><span><i class="w"></i>Sea Level</span></div>
+      <div class="lbl" id="coords">X — · D —</div>
     </div>
 
-    <div class="panel">
-        <div class="hud-gauge-group">
-            <div class="info-box">THREAT_LV<span class="info-val" style="color:#fff; text-shadow: 0 0 15px #fff; animation: textGlitch 2s infinite;">CRITICAL</span></div>
-            <div class="info-box">ACTIVE_OPR<span class="info-val" id="agent-count">423</span></div>
-            <div class="info-box">CORE_STAT<span class="info-val" style="color:#aaa;">STABLE</span></div>
-        </div>
+    <div id="alert"><div class="edge"></div><div class="band"><span id="al-t">CODE RED</span></div></div>
 
-        <div class="sync-section">
-            <div style="font-size:11px; color:var(--dim); letter-spacing:2px; display:flex; justify-content:space-between; margin-bottom:8px;">
-                <span>TARGET_SYNC_RATE</span>
-                <span id="sync-val" style="color:#fff; font-weight:900; text-shadow: 0 0 10px #fff;">0%</span>
-            </div>
-            <div id="sync-bar"><div id="sync-fill"></div></div>
+    <div id="detail">
+      <div class="dt-bar">
+        <button class="back" onclick="backToSection()"><span>←</span>단면도</button>
+        <div class="crumb" id="crumb"></div><b class="dt-name" id="dt-name"></b>
+        <div class="pager"><span class="n" id="pg-n"></span><button class="ib" onclick="stepRoom(-1)">‹</button><button class="ib" onclick="stepRoom(1)">›</button></div>
+      </div>
+      <div class="dt-body">
+        <div id="dtplan">
+          <div id="dtsvg"></div>
+          <div id="ptip"></div>
+          <div id="ro"><i class="lk"></i><div class="bx"><div class="top"><span class="lbl" id="ro-n"></span><button class="x" onclick="closeReadout()">×</button></div><h4 id="ro-t"></h4><p id="ro-d"></p></div></div>
+          <div class="dt-stamp" id="dt-stamp"><img src="「ARCH」 Symbol Logo White Ver.png" alt="" onerror="this.style.display='none'"><div id="dt-stamp-t"></div></div>
+          <div class="dt-hint lbl">번호를 누르면 상세 판독</div>
         </div>
+        <div class="dt-info" id="dt-info"></div>
+      </div>
+    </div>
 
-        <div class="mode-tabs">
-            <div class="mode-tab active" data-mode="mission" onclick="switchMode('mission')">▶ MISSION</div>
-            <div class="mode-tab" data-mode="diagnosis" onclick="switchMode('diagnosis')">▶ DIAGNOSIS</div>
+    <div id="lore" onclick="if(event.target===this)closeLore()">
+      <div class="lo-wrap">
+        <i class="lo-line"></i>
+        <div class="lo-box">
+          <div class="lo-h"><div class="l"><img src="「ARCH」 Symbol Logo White Ver.png" alt="" onerror="this.style.display='none'"><span class="lbl" id="lo-k"></span></div><div style="display:flex;gap:18px"><button class="tl" onclick="closeLore()">Close ×</button></div></div>
+          <div class="lo-b"><div id="lo-t"></div><div id="lo-body"></div></div>
+          <div class="lo-f" id="lo-f"></div>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <div class="input-group">
-            <span class="input-label">SENTINEL_ID</span>
-            <input type="text" id="sName" placeholder="센티넬 이름을 입력하세요">
+  <aside id="side">
+    <div class="tabs" id="tabs">
+      <button class="on" data-t="db" onclick="setTab('db')">Database<sup id="lore-count"></sup></button>
+      <button data-t="ops" onclick="setTab('ops')">Operations</button>
+      <i class="ink" id="ink"></i>
+    </div>
+    <div class="pane on" id="pane-db">
+      <div class="search"><label><input id="lore-q" type="text" placeholder="세계관 검색" autocomplete="off"><span class="kbd">/</span></label></div>
+      <div id="lore-list"></div>
+    </div>
+    <div class="pane" id="pane-ops">
+      <div class="ops">
+        <div class="sync">
+          <span class="lbl">Target Sync Rate</span>
+          <div class="sync-v"><div id="sync-val">—</div><span id="sync-grade">AWAITING</span></div>
+          <div class="bar"><div id="sync-fill"></div><i style="left:50%"></i><i style="left:71%"></i><i style="left:91%"></i></div>
+          <div class="bar-l"><span style="left:0">0</span><span style="left:50%">50</span><span style="left:71%">71</span><span style="left:91%">91</span><span style="left:100%">100</span></div>
         </div>
-        <div class="input-group">
-            <span class="input-label">GUIDE_ID</span>
-            <input type="text" id="gName" placeholder="가이드 이름을 입력하세요">
+        <div class="seg" id="seg">
+          <button class="on" data-mode="mission" onclick="switchMode('mission')">Mission</button>
+          <button data-mode="diagnosis" onclick="switchMode('diagnosis')">Diagnosis</button>
+          <button data-mode="archive" onclick="switchMode('archive')">Archive</button>
+          <i class="knob" id="knob"></i>
         </div>
-        <div class="input-group" id="grp-mtype">
-            <span class="input-label">MISSION_TYPE</span>
+        <div id="form">
+          <div class="fld"><span class="lbl">Sentinel</span><input type="text" id="sName" placeholder="센티넬 이름"></div>
+          <div class="fld"><span class="lbl">Guide</span><input type="text" id="gName" placeholder="가이드 이름"></div>
+          <div class="fld" id="grp-mtype"><span class="lbl">Mission Type</span>
             <select id="mType">
-                <option value="A">전술 섬멸 작전 (최전선 전투 및 섬멸)</option>
-                <option value="B">구역 탐색 및 정찰 (변수 창출 및 탐색)</option>
-                <option value="C">거점 방어 및 구출 (아군 보호 및 유지)</option>
-                <option value="S">공명 정밀 테스트 (훈련소 가이딩 측정)</option>
-                <option value="K">코드 블랙 / 비상 안정화 (폭주 임박)</option>
-                <option value="H">하모니 정기 상담 (관계성 멘탈 케어)</option>
-                <option value="R">코드 레드 (긴급 출동 프로토콜)</option>
+              <option value="A">전술 섬멸 작전</option>
+              <option value="B">구역 탐색 및 정찰</option>
+              <option value="C">거점 방어 및 구출</option>
+              <option value="S">공명 정밀 테스트</option>
+              <option value="K">코드 블랙 · 비상 안정화</option>
+              <option value="H">하모니 정기 상담</option>
+              <option value="R">코드 레드 · 긴급 출동</option>
             </select>
+          </div>
+          <button class="btn pri" id="action-btn" onclick="executeAction()">작전 프로토콜 생성</button>
         </div>
-        <button id="action-btn" onclick="executeAction()">GENERATE_PROTOCOL</button>
-        
-        <div id="ooc-terminal">>> SYSTEM_STANDBY. AWAITING_OPERATOR_COMMAND...</div>
-        <div id="doc-actions">
-            <button class="doc-btn" onclick="copyDocument()">[ COPY ]</button>
-        </div>
+        <div class="term-h"><span class="lbl">Output</span><span class="sp"></span><div id="acts"><button class="tl" onclick="copyDocument()">Copy</button></div></div>
+        <div id="term">&gt;&gt; SYSTEM_STANDBY. AWAITING_OPERATOR_COMMAND...</div>
+      </div>
     </div>
+  </aside>
 </div>
 
+<nav id="mnav">
+  <button class="on" data-v="map" onclick="setView('map')"><svg viewBox="0 0 20 20"><path d="M4 7h12v9H4zM7 3h6v4M4 11.5h12"/></svg><span>요새</span></button>
+  <button data-v="db" onclick="setView('db')"><svg viewBox="0 0 20 20"><path d="M4 4h12M4 8h12M4 12h8M4 16h5"/></svg><span>데이터베이스</span></button>
+  <button data-v="ops" onclick="setView('ops')"><svg viewBox="0 0 20 20"><path d="M10 3v14M3 10h14"/><circle cx="10" cy="10" r="5"/></svg><span>작전</span></button>
+</nav>
+<div id="keys"><div class="lbl" style="margin-bottom:10px">Shortcuts</div>
+  <div class="row">세계관 검색<kbd>/</kbd></div><div class="row">닫기 · 뒤로<kbd>Esc</kbd></div><div class="row">이전 · 다음 도면<kbd>← →</kbd></div><div class="row">메인 화면<kbd>H</kbd></div><div class="row">단축키 안내<kbd>?</kbd></div></div>
+
 <script>
-    // --- 월드 데이터베이스 (World Guide 완벽 반영) ---
-    const db = {
-        // 01 각성자 및 직급 체계
-        role_sentinel: { t: "센티넬 (Sentinel)", c: "어느 날 갑자기 초인적인 능력을 각성한 존재. 대부분은 ‘무속성’ 능력을 얻지만, 극소수는 세상의 근원적인 힘(6원소)과 공명하는 ‘속성 센티넬’로 각성한다. 자연 현상을 제어하는 압도적 힘을 지녀 최상위 엘리트로 분류된다.\n\n강력한 힘에는 대가가 따르며, 능력을 사용할수록 정신이 마모되어 ‘폭주’의 위험에 처한다." },
-        role_guide: { t: "가이드 (Guide)", c: "센티넬의 파장을 안정시킬 수 있는 유일한 존재. 가이드 중에서도 속성의 힘을 지닌 이들이 있으나, 스스로 능력을 전투에 사용할 수는 없다. 오직 가이딩을 통해 파트너에게 속성 버프를 부여한다.\n\n<가이딩 규약>\n가이드와의 ‘신체 접촉’을 통해 이루어지며, 스킨십 농도가 깊어질수록 극상의 쾌락과 함께 안정화 효율이 극대화된다." },
-        rank_identity: { t: "요원들의 자기인식", c: "“우리는 인류의 유일한 방패이자, 평범한 세상에는 속할 수 없는 이방인이다.”\n\n센티넬의 폭주 위험과 가이드의 정신적 헌신이라는 짐을 공유하기에, 동료들만이 서로를 이해하는 유일한 가족이다. 기꺼이 괴물이 되는 것을 감수하는 자랑스러운 최후의 보루." },
-        rank_prima: { t: "군주 | 아크 프리마 (Arch-Prima)", c: "ARCH의 정점에 군림하는 6명의 존재. 각 속성의 살아있는 화신이자 최고 결정권자들. 이름, 얼굴, 성별조차 알려지지 않은 최고 기밀 사항이며 하모니 책임자를 통해서만 명령을 하달한다. 살아있는 신화적 존재." },
-        rank_van: { t: "뱅가드 (Vanguard)", c: "S급 선봉대. ‘살아있는 전설’이자 가까이하기엔 너무 먼 존재들. 최강의 전투력을 지녔으나 고뇌나 성격적 결함을 안고 있는 경우가 많아 동경과 경외의 대상이 된다." },
-        rank_agt: { t: "에이전트 (Agent)", c: "A~B급 요원. ‘ARCH의 척추’. 실질적인 주력 부대이며, 묵묵히 임무를 수행하여 기관을 유지하는 가장 존중받는 직급이다." },
-        rank_aco: { t: "애콜라이트 (Acolyte)", c: "C급 이하 신입. ‘병아리’ 혹은 ‘걸어 다니는 시한폭탄’. 능력을 완벽히 제어하지 못해 선배들의 걱정과 기대를 한 몸에 받는다." },
+const db = {
+  role_sentinel:{t:"센티넬 (Sentinel)",c:"어느 날 갑자기 초인적인 능력을 각성한 존재. 대부분은 ‘무속성’ 능력을 얻지만, 극소수는 세상의 근원적인 힘(6원소)과 공명하는 ‘속성 센티넬’로 각성한다. 자연 현상을 제어하는 압도적 힘을 지녀 최상위 엘리트로 분류된다.\n\n강력한 힘에는 대가가 따르며, 능력을 사용할수록 정신이 마모되어 ‘폭주’의 위험에 처한다."},
+  role_guide:{t:"가이드 (Guide)",c:"센티넬의 파장을 안정시킬 수 있는 유일한 존재. 가이드 중에서도 속성의 힘을 지닌 이들이 있으나, 스스로 능력을 전투에 사용할 수는 없다. 오직 가이딩을 통해 파트너에게 속성 버프를 부여한다.\n\n<가이딩 규약>\n가이드와의 ‘신체 접촉’을 통해 이루어지며, 스킨십 농도가 깊어질수록 극상의 쾌락과 함께 안정화 효율이 극대화된다."},
+  rank_identity:{t:"요원들의 자기인식",c:"“우리는 인류의 유일한 방패이자, 평범한 세상에는 속할 수 없는 이방인이다.”\n\n센티넬의 폭주 위험과 가이드의 정신적 헌신이라는 짐을 공유하기에, 동료들만이 서로를 이해하는 유일한 가족이다. 기꺼이 괴물이 되는 것을 감수하는 자랑스러운 최후의 보루."},
+  rank_prima:{t:"군주 | 아크 프리마 (Arch-Prima)",c:"ARCH의 정점에 군림하는 6명의 존재. 각 속성의 살아있는 화신이자 최고 결정권자들. 이름, 얼굴, 성별조차 알려지지 않은 최고 기밀 사항이며 하모니 책임자를 통해서만 명령을 하달한다. 살아있는 신화적 존재."},
+  rank_van:{t:"뱅가드 (Vanguard)",c:"S급 선봉대. ‘살아있는 전설’이자 가까이하기엔 너무 먼 존재들. 최강의 전투력을 지녔으나 고뇌나 성격적 결함을 안고 있는 경우가 많아 동경과 경외의 대상이 된다."},
+  rank_agt:{t:"에이전트 (Agent)",c:"A~B급 요원. ‘ARCH의 척추’. 실질적인 주력 부대이며, 묵묵히 임무를 수행하여 기관을 유지하는 가장 존중받는 직급이다."},
+  rank_aco:{t:"애콜라이트 (Acolyte)",c:"C급 이하 신입. ‘병아리’ 혹은 ‘걸어 다니는 시한폭탄’. 능력을 완벽히 제어하지 못해 선배들의 걱정과 기대를 한 몸에 받는다."},
+  elem_none:{t:"무속성 (Non-Attribute)",c:"[센티넬] 신체 강화, 염동력, 투시 등 초인적 능력 발휘.\n[가이드] 자연 원소는 없으나 가장 본질적이고 순수한 정신 파장 안정화 및 오염 정화 수행."},
+  elem_fire:{t:"불 (Pyre)",c:"[센티넬] 파괴, 열기, 폭발. 확실한 파괴력이지만 감정 기복이 심해 ‘고위험-고수익’ 자산. 최전선 섬멸 작전의 핵심.\n[가이드] 아군 공격에 화상 효과 부여 및 전투력 폭발적 증폭. ‘전장의 기폭제’."},
+  elem_water:{t:"물 (Aqua)",c:"[센티넬] 수압, 침식. 장기전과 광역 장악에 특화된 든든한 방어 자원. 서서히 적을 무너뜨린다.\n[가이드] 순수한 치유와 정화 능력을 지닌 ‘걸어 다니는 의무실’. 모든 팀의 영입 1순위."},
+  elem_grass:{t:"풀 (Verde)",c:"[센티넬] 성장, 속박, 독. 변칙적인 능력으로 전장을 지배하는 특수 작전 및 생포 전문가.\n[가이드] 재생 필드 생성 및 적 속박. 장기전에서 아군 피해를 최소화하는 ‘전장의 설계자’."},
+  elem_light:{t:"번개 (Fulmen)",c:"[센티넬] 인지하는 순간 임무가 끝나는 초고속 기밀 작전 스페셜리스트. 암살 및 속전속결의 대명사.\n[가이드] 아군의 반응 속도를 극한으로 올려 0.1초의 기적을 만든다. 심정지 소생 가능."},
+  elem_wind:{t:"바람 (Aero)",c:"[센티넬] 비행과 넓은 시야를 바탕으로 정찰, 공격, 교란을 오가는 가장 범용성 높은 해결사.\n[가이드] 속성 공격 확산 및 일시적 비행 능력 부여. 지형 한계를 무시하는 ‘전략의 날개’."},
+  elem_ice:{t:"얼음 (Glacies)",c:"[센티넬] 모든 것을 멈추는 날카로운 힘. 절대 방패이자 절대 창으로 제압 임무에서 절대적 신뢰를 받는다.\n[가이드] 피해를 흡수하는 보호막을 생성하는 ‘수호자’. 최전선에서 가장 의지하는 존재."},
+  sys_guide_lv:{t:"가이딩 필요 수치",c:"능력 사용량과 스트레스에 비례해 상승.\n- 미세 상승(0.5~1.5%): 사소한 자극\n- 소폭 상승(3~5%): 잦은 능력 사용\n- 중폭 상승(10~15%): 전투 돌입, 강렬한 충격\n\n80%를 넘겨도 가이딩을 거부하면 S급들이 포박하여 긴급 가이딩 시설(STAB)로 보낸다."},
+  sys_sync:{t:"싱크로율 및 각인",c:"정신 파장 공명률. 가이딩 효율의 절대적 지표.\n- 50% 미만: 배정 불가\n- 50~70%: 표준\n- 71~90%: 엘리트 조합\n- 91% 이상: 전설적 수치. 지속적 깊은 가이딩 시 영구적 ‘각인’ 발생.\n\n각인된 센티넬은 타 가이드에게 반응하지 않으며 파트너에게 절대 의존하는 운명 공동체가 된다."},
+  sys_addict:{t:"가이딩 중독 / 가이드의 기운",c:"[중독] 수치가 낮음에도 극상의 쾌락과 안정감을 갈망하여 파트너에게 과도하게 요구하는 심리적 의존 현상.\n[기운] 속성 가이드는 각 속성의 기운(한기, 열기 등)을 몸에 품게 되어 초기 적응이 필요하다. (단, 공격용 능력 사용은 절대 불가)"},
+  sys_uniform:{t:"ARCH 제복 규정",c:"[센티넬 제복] 깊은 검은색. 날렵한 핏의 하이칼라 재킷, 전술 팬츠, 강철 팁 전투화. (S급은 금색 견장 추가)\n[가이드 제복] 순백색. 부드러운 곡선과 은색 장식, 경량 가죽 부츠. 지원 역할의 정체성을 시각화함. 각자의 개성에 맞춰 약간의 리폼이 허용된다."},
+  enemy_monster:{t:"괴수 (Monsters)",c:"초자연적 존재로 파괴 본능만으로 움직인다. 등급별로 위협도가 다르며, S급은 도시를 파괴할 수준. ARCH의 주적."},
+  enemy_rampage:{t:"폭주 개체 (Rampaged)",c:"정신적 붕괴로 폭주 상태에 빠진 센티넬. 제어되지 않으면 괴수보다 파괴적이다. 진압 및 가이딩 구조팀이 파견된다."},
+  enemy_corrupt:{t:"타락 센티넬 / 코드 레드",c:"[타락 센티넬] 실험이나 세뇌로 인간성을 상실한 존재들.\n[코드 레드] 사전 브리핑 없이 즉시 현장으로 출동해야 하는 긴급 사태 사이렌."},
+  loc_aegis:{t:"본부 / 센트럴 코어",c:"위성에도 잡히지 않는 바다 위 이동 요새 도시. 영웅들의 영광과 고뇌가 공존하는 거대한 감옥이자 안식처. 최상층 센트럴 코어는 모든 작전을 지휘하는 24시간 관제 센터이자 군주들의 회의실이다."},
+  loc_sky:{t:"하늘정원",c:"반중력석으로 영원히 하늘에 떠 있는 부유섬. 고대 신전의 폐허와 희귀 식물들로 가득하다. 바람의 군주 ‘이카로스’에 의해 발견된 비밀스러운 장소."},
+  loc_dome:{t:"특별통제 훈련장 / 훈련소",c:"지하 깊숙한 격리 훈련 시설. 어떤 속성도 견디는 특수 합금 돔. 지형이 자유롭게 변형되며 VIP 참관석이 있어 파트너 관계성을 확인하는 무대로도 쓰인다."},
+  loc_harmony:{t:"하모니 심리상담실",c:"트라우마 관리 및 파트너 관계 유지를 위한 전용 공간. 소파와 조명까지 맞춤 설정된다. 파트너와 갈등 시 책임자에게 불려와 상담을 받는 곳."},
+  loc_stab:{t:"비상 안정화실 (STAB)",c:"수치 80% 이상의 폭주 직전 센티넬을 강제 수용하는 곳. 차가운 백색 조명과 구속 장치 속에서 생존을 위한 강제 가이딩이 진행된다. 벽면의 그을음과 흠집이 공포심을 준다."},
+  loc_medical:{t:"의무실 및 개인실",c:"[의무실] 부상 및 폭주 후유증 치료 시설. 차폐막과 안정화 기기가 장착된 병상에서 의료진과 가이드가 동시 케어한다.\n[개인실] 등급별로 설비가 다른 숙소. 요원의 취향이 반영되며 대부분의 일상적 가이딩이 이곳에서 이루어진다."},
+  loc_lounge:{t:"라운지 & 공명연구실",c:"[라운지] 고단한 임무 뒤 긴장을 푸는 소중한 휴식처. 햇빛과 식물, 부드러운 음악이 제공되며 속성 간 간섭을 최소화했다.\n[공명연구실] 감정 파장을 수치화하여 분석하는 투명 포드가 있는 차가운 실험 공간."},
+  dept_harmony:{t:"하모니 부서 (HARMONY)",c:"[목적] 아크 내 모든 가이드들이 소속되어 있으며, 가이드와 센티넬의 등급을 매기고, ‘생명 데이터’를 관리하는 총괄 행정 부서.\n[권한] 페어링 매칭, 임무 투입 여부, 복귀 평가 등 ‘모든 생명 관리 권한’을 가진 최종 결재권자."},
+  team_rst:{t:"긴급 제압팀 (R.S.T.)",c:"[목적] 하모니 부서 내의 특수 부대로, ‘통제 불능 센티넬’의 물리적 무력화 및 강제 가이딩을 위한 최종 수단.\n[구성] S급 가이드 능력을 지닌 요원들 중, 각성 전 이력(용병, 특수부대 등)에 기반한 압도적 ‘非능력 전투 기술’을 보유한 인원으로만 한정 선발.\n[역할] 이들은 대부분 공식 파트너 없이 활동하고 있으며, ARCH 전역 최고 위험등급 폭주 사태에 최우선 투입되는 ‘해결사’로 사실상 생존을 보장할 수 없는 임무에 주로 호출된다."}
+};
+const CATS = {
+  "요원 및 직급":["role_sentinel","role_guide","rank_identity","rank_prima","rank_van","rank_agt","rank_aco"],
+  "속성 및 평판":["elem_none","elem_fire","elem_water","elem_grass","elem_light","elem_wind","elem_ice"],
+  "시스템 및 규정":["sys_guide_lv","sys_sync","sys_addict","sys_uniform"],
+  "적 및 위협 요소":["enemy_monster","enemy_rampage","enemy_corrupt"],
+  "주요 거점":["loc_aegis","loc_sky","loc_dome","loc_harmony","loc_stab","loc_medical","loc_lounge"],
+  "부서 및 특수 조직":["dept_harmony","team_rst"]
+};
 
-        // 02 속성 체계 및 평판
-        elem_none: { t: "무속성 (Non-Attribute)", c: "[센티넬] 신체 강화, 염동력, 투시 등 초인적 능력 발휘.\n[가이드] 자연 원소는 없으나 가장 본질적이고 순수한 정신 파장 안정화 및 오염 정화 수행." },
-        elem_fire: { t: "🔥 불 (Pyre)", c: "[센티넬] 파괴, 열기, 폭발. 확실한 파괴력이지만 감정 기복이 심해 ‘고위험-고수익’ 자산. 최전선 섬멸 작전의 핵심.\n[가이드] 아군 공격에 화상 효과 부여 및 전투력 폭발적 증폭. ‘전장의 기폭제’." },
-        elem_water: { t: "💧 물 (Aqua)", c: "[센티넬] 수압, 침식. 장기전과 광역 장악에 특화된 든든한 방어 자원. 서서히 적을 무너뜨린다.\n[가이드] 순수한 치유와 정화 능력을 지닌 ‘걸어 다니는 의무실’. 모든 팀의 영입 1순위." },
-        elem_grass: { t: "🌿 풀 (Verde)", c: "[센티넬] 성장, 속박, 독. 변칙적인 능력으로 전장을 지배하는 특수 작전 및 생포 전문가.\n[가이드] 재생 필드 생성 및 적 속박. 장기전에서 아군 피해를 최소화하는 ‘전장의 설계자’." },
-        elem_light: { t: "⚡ 번개 (Fulmen)", c: "[센티넬] 인지하는 순간 임무가 끝나는 초고속 기밀 작전 스페셜리스트. 암살 및 속전속결의 대명사.\n[가이드] 아군의 반응 속도를 극한으로 올려 0.1초의 기적을 만든다. 심정지 소생 가능." },
-        elem_wind: { t: "💨 바람 (Aero)", c: "[센티넬] 비행과 넓은 시야를 바탕으로 정찰, 공격, 교란을 오가는 가장 범용성 높은 해결사.\n[가이드] 속성 공격 확산 및 일시적 비행 능력 부여. 지형 한계를 무시하는 ‘전략의 날개’." },
-        elem_ice: { t: "❄️ 얼음 (Glacies)", c: "[센티넬] 모든 것을 멈추는 날카로운 힘. 절대 방패이자 절대 창으로 제압 임무에서 절대적 신뢰를 받는다.\n[가이드] 피해를 흡수하는 보호막을 생성하는 ‘수호자’. 최전선에서 가장 의지하는 존재." },
 
-        // 03 시스템 및 규정
-        sys_guide_lv: { t: "가이딩 필요 수치", c: "능력 사용량과 스트레스에 비례해 상승. \n- 미세 상승(0.5~1.5%): 사소한 자극\n- 소폭 상승(3~5%): 잦은 능력 사용\n- 중폭 상승(10~15%): 전투 돌입, 강렬한 충격\n\n80%를 넘겨도 가이딩을 거부하면 S급들이 포박하여 긴급 가이딩 시설(STAB)로 보낸다." },
-        sys_sync: { t: "싱크로율 및 각인", c: "정신 파장 공명률. 가이딩 효율의 절대적 지표.\n- 50% 미만: 배정 불가\n- 50~70%: 표준\n- 71~90%: 엘리트 조합\n- 91% 이상: 전설적 수치. 지속적 깊은 가이딩 시 영구적 ‘각인’ 발생.\n\n각인된 센티넬은 타 가이드에게 반응하지 않으며 파트너에게 절대 의존하는 운명 공동체가 된다." },
-        sys_addict: { t: "가이딩 중독 / 가이드의 기운", c: "[중독] 수치가 낮음에도 극상의 쾌락과 안정감을 갈망하여 파트너에게 과도하게 요구하는 심리적 의존 현상.\n[기운] 속성 가이드는 각 속성의 기운(한기, 열기 등)을 몸에 품게 되어 초기 적응이 필요하다. (단, 공격용 능력 사용은 절대 불가)" },
-        sys_uniform: { t: "ARCH 제복 규정", c: "[센티넬 제복] 깊은 검은색. 날렵한 핏의 하이칼라 재킷, 전술 팬츠, 강철 팁 전투화. (S급은 금색 견장 추가)\n[가이드 제복] 순백색. 부드러운 곡선과 은색 장식, 경량 가죽 부츠. 지원 역할의 정체성을 시각화함. 각자의 개성에 맞춰 약간의 리폼이 허용된다." },
 
-        // 04 적 및 위협
-        enemy_monster: { t: "괴수 (Monsters)", c: "초자연적 존재로 파괴 본능만으로 움직인다. 등급별로 위협도가 다르며, S급은 도시를 파괴할 수준. ARCH의 주적." },
-        enemy_rampage: { t: "폭주 개체 (Rampaged)", c: "정신적 붕괴로 폭주 상태에 빠진 센티넬. 제어되지 않으면 괴수보다 파괴적이다. 진압 및 가이딩 구조팀이 파견된다." },
-        enemy_corrupt: { t: "타락 센티넬 / 코드 레드", c: "[타락 센티넬] 실험이나 세뇌로 인간성을 상실한 존재들.\n[코드 레드] 사전 브리핑 없이 즉시 현장으로 출동해야 하는 긴급 사태 사이렌." },
+const PLANS={
+ core:{w:24,h:16,desc:'요새 최상층의 24시간 관제 센터. 전 세계 괴수 반응과 요원 수치가 이곳으로 모이며, 방 한쪽 격벽 너머에는 여섯 군주의 회의실이 있다. 군주의 명령은 절대 이 방을 직접 떠나지 않는다.',
+  els:[['wall',17,0,17,16],['door',17,7,2,'v'],['wall',0,11,5,11],['wall',5,11,5,16],['door',2,11,1.6,'h'],
+   ['rect',3,0.35,11,0.5,'','e'],['txt',8.5,1.2,'메인 스크린 월',.36],
+   ['rect',2,2,2.2,1,'OPS','f'],['rect',4.6,2,2.2,1,'OPS','f'],['rect',7.2,2,2.2,1,'OPS','f'],['rect',9.8,2,2.2,1,'OPS','f'],['rect',12.4,2,2.2,1,'OPS','f'],
+   ['circ',8.5,8,2.6,'','z'],['circ',8.5,8,1.5,'홀로 테이블','e'],['ring',8.5,8,3.3,8,0.3,'f'],
+   ['circ',20.5,8,1.8,'원탁','e'],['ring',20.5,8,2.6,6,0.38,'f'],['txt',20.5,12.3,'ARCH-PRIMA COUNCIL',.34],['glass',17.6,0.4,23.6,0.4],
+   ['rect',0.6,12.2,3.4,1,'통신 콘솔','f'],['rect',10,14,3,2,'','f'],['x',10,14,3,2],['txt',11.5,13.6,'코어 리프트',.36]],
+  co:[[8.5,8,'전술 홀로 테이블','전 세계 괴수 반응과 요원 위치를 실시간 투영하는 원형 홀로그램. 코드 레드 발령 시 붉게 전환된다.'],
+      [8.5,2.5,'관제 콘솔 어레이','3교대로 운용되는 오퍼레이터 좌석. 각 콘솔은 담당 구역 요원들의 가이딩 필요 수치를 실시간 모니터링한다.'],
+      [20.5,8,'군주 회의실 원탁','여섯 좌석, 여섯 명의 아크 프리마. 회의 중에는 격벽 유리가 불투명화되고 모든 기록 장치가 물리적으로 차단된다.'],
+      [2.3,13.8,'하모니 직통 통신실','군주의 명령은 오직 이 회선을 통해 하모니 책임자에게만 하달된다.'],
+      [11.5,15,'코어 리프트','최상층 전용 승강기. 생체 인증과 파장 대조의 이중 보안.']]},
+ sky:{w:22,h:16,noOuter:1,desc:'반중력석 하나가 떠받치고 있는 부유섬. 이름 모를 신전의 잔해와 지상에서 사라진 식물들이 자란다. 정기 연결편이 없어, 날 수 있는 자만 올 수 있다.',
+  els:[['poly',[[2,3],[6,1],[12,0.6],[17,1.5],[21,4.5],[21.4,9],[19,13.5],[13,15.4],[7,15],[2.5,12.5],[0.6,8]],'pwc'],
+   ['circ',11,8,2.1,'','z'],['circ',11,8,1.1,'반중력석','e'],
+   ['zone',13.4,2.8,6.4,5.4,'RUINS'],['circ',14.2,3.8,.35,'','f'],['circ',16.4,3.8,.35,'','f'],['circ',18.6,3.8,.35,'','f'],['circ',14.2,7.2,.35,'','f'],['circ',16.4,7.2,.35,'','f'],['circ',18.6,7.2,.35,'','f'],['rect',15.6,4.9,1.6,1.2,'제단','e'],
+   ['zone',2.6,5,5.4,6,'FLORA'],['circ',4,6.5,.5,'','e'],['circ',5.8,7.2,.7,'','e'],['circ',4.2,9,.6,'','e'],['circ',6.6,9.6,.45,'','e'],
+   ['path','M 5 13 Q 9 11.5 10 9.6 T 15.5 8.6','z'],
+   ['rect',18.4,10,2.2,2.6,'전망대','f'],['circ',6,3.3,1.1,'LZ','f']],
+  co:[[11,8,'반중력석 핵','섬 전체를 떠받치는 고대의 돌. 표면의 문양은 아직 해독되지 않았다.'],
+      [16.4,5.5,'고대 신전 폐허','누가 세웠는지 알 수 없는 신전의 잔해. 기둥 사이를 지나는 바람이 낮게 운다.'],
+      [5.3,8,'희귀 식물 군락','지상에서는 멸종된 종들이 자생한다. 풀 속성 요원들의 비공식 성지.'],
+      [19.5,11.3,'이카로스의 전망대','바람의 군주가 섬을 처음 발견한 지점이라 전해진다. 출입 기록이 남지 않는 유일한 장소.'],
+      [6,3.3,'비행 착륙점','바람 속성 센티넬, 혹은 가이드의 비행 버프로만 도달할 수 있다.']]},
+ dome:{w:24,h:20,desc:'지하 깊숙이 묻힌 다층 합금 돔. 바닥 지형이 실시간으로 변형되며, 유리 너머 VIP 참관석에서는 파트너의 호흡 하나까지 지켜본다.',
+  els:[['circ',12,11,7.6,'','w'],['circ',12,11,6,'','z'],['ring',12,11,7.6,16,.18,'e'],
+   ['rect',8,8,2,1.5,'','e'],['rect',14,12,2.5,1.2,'','e'],['rect',10,13.5,1.2,1.2,'','e'],['circ',15,8.5,.8,'','e'],['rect',7.5,11.5,1.4,.9,'','e'],
+   ['rect',6,0.4,12,2,'VIP 참관석','f'],['glass',6,2.8,18,2.8],
+   ['wall',0,14,4,14],['wall',4,14,4,20],['door',1,14,1.6,'h'],['rect',0.5,17.5,3,1,'측정 콘솔','f'],['glass',4,14.5,4,16.5],
+   ['wall',10,18.2,14,18.2],['rect',10.5,18.5,3,1.3,'에어록','f']],
+  co:[[12,11,'특수 합금 돔','모든 속성의 최대 출력을 견디도록 설계된 다층 합금 격벽. 내부 지름 약 15m.'],
+      [9,8.75,'가변 지형 모듈','바닥 플레이트가 솟고 가라앉으며 시가지, 협곡, 수중 지형까지 재현한다.'],
+      [12,1.4,'VIP 참관석','방탄 유리 너머에서 고위 인사와 하모니 관계자가 지켜본다. 소문이 가장 빨리 퍼지는 자리.'],
+      [2,16.5,'측정 통제실','싱크로율과 가이딩 효율을 실시간 기록한다. 공명 정밀 테스트의 공식 데이터는 전부 여기서 나온다.'],
+      [12,19.1,'격리 에어록','훈련 중 폭주 징후가 감지되면 자동으로 봉쇄된다.']]},
+ stab:{w:18,h:14,desc:'가이딩 필요 수치 80%를 넘긴 센티넬이 강제로 수용되는 방. 차가운 백색 조명, 억제 합금 구속구, 그리고 지워지지 않는 벽의 흔적들.',
+  els:[['rect',0.4,0.4,17.2,13.2,'','zd'],['glass',4,0,4,9],['wall',4,9,4,14],['rect',0.6,2,2.6,5,'관찰 콘솔','f'],
+   ['circ',10.6,7.8,4.2,'','zd'],['rect',9,5.3,3.2,5,'구속 병상','d'],
+   ['circ',9.2,5.6,.18,'','d'],['circ',12,5.6,.18,'','d'],['circ',9.2,10,.18,'','d'],['circ',12,10,.18,'','d'],
+   ['circ',13.3,4.6,.3,'','e'],['txt',13.3,3.9,'진정제 투입구',.3],
+   ['rect',14.6,5,3,3,'R.S.T.','f'],
+   ['wall',8,12,13,12],['rect',8.6,12.3,3.8,1.4,'이중 에어록','f'],
+   ['scorch',16.2,2.4,1.2],['scorch',15.6,10.6,.9],['scorch',6.2,1.6,.8],['scorch',6.4,12.2,.6]],
+  co:[[10.6,7.8,'구속 병상','폭주 직전의 센티넬을 고정하는 강화 병상. 구속구는 속성 출력을 물리적으로 차단하는 억제 합금.'],
+      [10.6,3.6,'파장 억제 코일','천장 매립형 원형 코일. 가이딩이 시작되기 전까지 폭주 파장을 억누르며 시간을 번다.'],
+      [2,8,'단방향 관찰실','하모니 의료진이 수치를 감시한다. 안쪽에서는 거울로만 보인다.'],
+      [16.2,2.4,'벽면 그을음·흠집','지워지지 않는 흔적들. 일부러 남겨 두었다는 소문이 있다.'],
+      [16.1,6.5,'R.S.T. 대기석','가이딩 실패 시 즉시 개입하는 긴급 제압팀의 자리. 이 의자가 비어 있는 날은 없다.'],
+      [10.5,13,'이중 에어록','두 문은 동시에 열리지 않는다. 수치가 60% 아래로 내려가기 전까지 바깥 문은 잠긴다.']]},
+ reslab:{w:18,h:12,desc:'감정 파장을 숫자로 바꾸는 차가운 실험실. 투명 포드 두 개가 나란히 서 있고, 벽 너머 서버에는 전 요원의 생명 데이터가 잠들어 있다.',
+  els:[['circ',7,5,3.4,'','z'],['circ',5,5,1.4,'POD A','e'],['circ',9,5,1.4,'POD B','e'],['line',6.4,5,7.6,5,'e'],
+   ['rect',1.5,9.4,10,1.1,'파형 분석 터미널','f'],['wall',13,0,13,12],['door',13,8.8,1.6,'v'],
+   ['rect',14.3,0.8,2.9,1.3,'','f'],['rect',14.3,2.5,2.9,1.3,'','f'],['rect',14.3,4.2,2.9,1.3,'','f'],['rect',14.3,5.9,2.9,1.3,'','f'],['txt',15.75,7.9,'DATA CORE',.34],
+   ['rect',0.8,0.8,3,1.4,'연구원석','f']],
+  co:[[7,5,'투명 공명 포드','파트너가 각각의 포드에 들어가 감정 파장을 수치화한다. 서로의 모습은 보이지만 목소리는 들리지 않는다.'],
+      [6.5,10,'파형 분석 터미널','싱크로율, 각인 진행도, 중독 지표를 산출한다. 연구원들 사이 별명은 “고해실”.'],
+      [15.75,3.8,'생명 데이터 서버','하모니가 관리하는 전 요원의 생명 데이터 원본. 물리적으로만 접근 가능한 폐쇄망.']]},
+ medbay:{w:20,h:14,desc:'부상과 폭주 후유증을 치료하는 곳. 병상마다 속성 차폐막이 둘러져 있고, 의료진과 가이드가 교대로 상주한다.',
+  els:[['zone',0.8,0.4,2.8,3.8,''],['zone',4,0.4,2.8,3.8,''],['zone',7.2,0.4,2.8,3.8,''],['zone',10.4,0.4,2.8,3.8,''],
+   ['rect',1.2,0.6,2,3,'','e'],['rect',4.4,0.6,2,3,'','e'],['rect',7.6,0.6,2,3,'','e'],['rect',10.8,0.6,2,3,'','e'],
+   ['rect',5.5,6.2,6,1.6,'간호 스테이션','f'],
+   ['wall',15,0,15,14],['door',15,5.6,1.8,'v'],['glass',15,1,15,5],['rect',16.3,5,2.4,3.4,'격리 병상','d'],
+   ['rect',1,11,4,2.4,'약품 보관','f'],['rect',8,11.6,2,1.5,'','e'],['rect',11,11.6,2,1.5,'','e'],['txt',10.5,13.6,'안정화 기기',.34]],
+  co:[[5.4,2.1,'차폐막 병상','병상마다 속성 차폐막이 둘러져 옆 침대의 잔류 기운이 넘어오지 않는다.'],
+      [8.5,7,'간호 스테이션','의료진과 담당 가이드가 교대로 상주한다. 치료와 가이딩이 동시에 이루어지는 구조.'],
+      [17.5,6.7,'격리 병상','폭주 후유증 환자 전용. 수치가 안정될 때까지 외부 출입이 제한된다.'],
+      [10.5,12.35,'파장 안정화 기기','가이드가 없을 때 수치 상승을 잠시 늦춰주는 장비. 어디까지나 임시방편이다.']]},
+ harmony:{w:14,h:12,desc:'소파의 경도부터 조명의 색온도까지 대상자에게 맞춰지는 방. 편안해 보이도록 설계되었지만, 불려 온 이유를 모르는 사람은 없다.',
+  els:[['glass',2,0,12,0],['rect',1,2.5,1.2,5.5,'','f'],['rect',1,7,4.5,1.2,'소파','f'],['circ',4.2,4.8,1,'','f'],
+   ['circ',8.8,4.6,.8,'','f'],['txt',8.8,5.9,'책임자석',.34],['circ',12.6,1.4,.7,'','e'],
+   ['rect',12.2,5.4,1.2,2.2,'','e'],['txt',11.4,6.5,'조명',.34],['rect',9.4,10.4,3.4,1,'파장 모니터','d'],['door',5.5,12,1.8,'h']],
+  co:[[2.6,6.2,'맞춤형 소파','요원별 선호 데이터에 맞춰 경도·온도·배치가 조정된다.'],
+      [8.8,4.6,'책임자 좌석','하모니 책임자의 자리. 파트너 갈등으로 소환되면 이 의자와 마주 앉게 된다.'],
+      [12.8,6.5,'조명·음향 제어','속성별 심리 안정 파장에 맞춘 색온도 프리셋이 저장되어 있다.'],
+      [11.1,10.9,'파장 모니터','상담 중 감정 파형을 기록한다. 대상자에게 고지되지 않는 경우도 많다.']]},
+ lounge:{w:20,h:14,desc:'요새 안에서 유일하게 햇빛이 직접 드는 곳. 식물과 음악, 그리고 서로의 기운이 섞이지 않도록 설계된 동선.',
+  els:[['zone',5,1,10,6,'SKYLIGHT ABOVE'],['circ',2,2,.9,'','e'],['circ',18,2,.6,'음향 시스템','e'],['circ',2,7,.8,'','e'],['circ',13.5,9.5,.8,'','e'],
+   ['rect',6,3,1.2,3,'','f'],['rect',12.8,3,1.2,3,'','f'],['circ',10,4.5,1.2,'','f'],
+   ['rect',6,9,5,1.2,'소파','f'],['rect',1,10.8,6,1.3,'바 카운터','f'],
+   ['wall',15,8,20,8],['wall',15,8,15,14],['door',15,10,1.8,'v'],['rect',16.2,9.8,3,3,'차단 부스','e']],
+  co:[[10,4.5,'천장 채광창','해상 요새 안에서 유일하게 자연광이 직접 드는 자리. 늘 먼저 차지하는 사람이 있다.'],
+      [2,2,'실내 정원','풀 속성 가이드들이 돌보는 화분들. 가끔 밤사이 조금씩 자라 있다.'],
+      [4,11.45,'바 카운터','무알코올 원칙. 공식적으로는.'],
+      [17.7,11.3,'속성 간섭 차단 부스','상극 속성 요원이 같은 공간에 있어도 기운이 섞이지 않도록 만든 개인 부스.'],
+      [18,2,'음향 시스템','심박에 맞춰 템포가 느려지는 배경 음악이 흐른다.']]},
+ quarters:{w:22,h:12,desc:'등급에 따라 설비가 다른 숙소 구역. 요원의 취향대로 개조가 허용되며, 일상적인 가이딩 대부분이 이 벽들 안에서 이루어진다.',
+  els:[['zone',0,5,22,2,'CORRIDOR'],['wall',0,5,22,5],['wall',0,7,22,7],
+   ['wall',8,0,8,5],['wall',13,0,13,5],['wall',18,0,18,5],['wall',5.5,7,5.5,12],['wall',11,7,11,12],['wall',16.5,7,16.5,12],
+   ['door',5.5,5,1.4,'h'],['door',10,5,1.2,'h'],['door',15,5,1.2,'h'],['door',19.4,5,1.2,'h'],
+   ['rect',0.8,0.6,3,2.2,'침대','f'],['rect',4.4,3,3,1.2,'안정화 소파','e'],['txt',4,4.6,'VANGUARD',.3],
+   ['rect',8.6,0.6,2,2.6,'','f'],['rect',13.6,0.6,2,2.6,'','f'],['rect',18.4,0.6,1.3,3,'','f'],['rect',20.2,0.6,1.3,3,'','f'],
+   ['rect',0.6,9,1.8,2.4,'','f'],['rect',6.1,9,1.8,2.4,'','f'],['rect',11.6,9,1.8,2.4,'','f'],['rect',17.1,9,1.8,2.4,'','f']],
+  co:[[4,2,'뱅가드 스위트','S급 전용. 파장 차폐 벽체와 분리된 가이딩 공간. 금색 견장이 곧 문패다.'],
+      [10.5,2.5,'에이전트 표준실','A~B급 1인실. 개조가 자유로워 방마다 분위기가 전혀 다르다.'],
+      [20,2.3,'애콜라이트 공용 숙소','신입 2인 1실. 침대마다 야간 폭주 대비 비상 호출 버튼이 있다.'],
+      [11,6,'중앙 복도','야간에는 조도가 30%로 떨어지고, 순찰 드론이 15분마다 지나간다.']]}
+};
 
-        // 05 주요 거점
-        loc_aegis: { t: "본부 / 센트럴 코어", c: "위성에도 잡히지 않는 바다 위 이동 요새 도시. 영웅들의 영광과 고뇌가 공존하는 거대한 감옥이자 안식처. 최상층 센트럴 코어는 모든 작전을 지휘하는 24시간 관제 센터이자 군주들의 회의실이다." },
-        loc_sky: { t: "하늘정원", c: "반중력석으로 영원히 하늘에 떠 있는 부유섬. 고대 신전의 폐허와 희귀 식물들로 가득하다. 바람의 군주 ‘이카로스’에 의해 발견된 비밀스러운 장소." },
-        loc_dome: { t: "특별통제 훈련장 / 훈련소", c: "지하 깊숙한 격리 훈련 시설. 어떤 속성도 견디는 특수 합금 돔. 지형이 자유롭게 변형되며 VIP 참관석이 있어 파트너 관계성을 확인하는 무대로도 쓰인다." },
-        loc_harmony: { t: "하모니 심리상담실", c: "트라우마 관리 및 파트너 관계 유지를 위한 전용 공간. 소파와 조명까지 맞춤 설정된다. 파트너와 갈등 시 책임자에게 불려와 상담을 받는 곳." },
-        loc_stab: { t: "비상 안정화실 (STAB)", c: "수치 80% 이상의 폭주 직전 센티넬을 강제 수용하는 곳. 차가운 백색 조명과 구속 장치 속에서 생존을 위한 강제 가이딩이 진행된다. 벽면의 그을음과 흠집이 공포심을 준다." },
-        loc_medical: { t: "의무실 및 개인실", c: "[의무실] 부상 및 폭주 후유증 치료 시설. 차폐막과 안정화 기기가 장착된 병상에서 의료진과 가이드가 동시 케어한다.\n[개인실] 등급별로 설비가 다른 숙소. 요원의 취향이 반영되며 대부분의 일상적 가이딩이 이곳에서 이루어진다." },
-        loc_lounge: { t: "라운지 & 공명연구실", c: "[라운지] 고단한 임무 뒤 긴장을 푸는 소중한 휴식처. 햇빛과 식물, 부드러운 음악이 제공되며 속성 간 간섭을 최소화했다.\n[공명연구실] 감정 파장을 수치화하여 분석하는 투명 포드가 있는 차가운 실험 공간." },
 
-        // 06 부서 및 특수 조직
-        dept_harmony: { t: "하모니 부서 (HARMONY)", c: "[목적] 아크 내 모든 가이드들이 소속되어 있으며, 가이드와 센티넬의 등급을 매기고, ‘생명 데이터’를 관리하는 총괄 행정 부서.\n[권한] 페어링 매칭, 임무 투입 여부, 복귀 평가 등 ‘모든 생명 관리 권한’을 가진 최종 결재권자." },
-        team_rst: { t: "긴급 제압팀 (R.S.T.)", c: "[목적] 하모니 부서 내의 특수 부대로, ‘통제 불능 센티넬’의 물리적 무력화 및 강제 가이딩을 위한 최종 수단.\n[구성] S급 가이드 능력을 지닌 요원들 중, 각성 전 이력(용병, 특수부대 등)에 기반한 압도적 ‘非능력 전투 기술’을 보유한 인원으로만 한정 선발.\n[역할] 이들은 대부분 공식 파트너 없이 활동하고 있으며, ARCH 전역 최고 위험등급 폭주 사태에 최우선 투입되는 ‘해결사’로 사실상 생존을 보장할 수 없는 임무에 주로 호출된다." }
-    };
 
-    const sysLogs = [
-        ">> SCANNING_GLOBAL_THREAT_LEVEL...", 
-        ">> NEURAL_LINK_STABLE", 
-        ">> WARNING: MINOR_WAVE_FLUCTUATION_DETECTED", 
-        ">> HARMONY_DEPT_DATA_SYNC_COMPLETE", 
-        ">> ALERT: UNAUTHORIZED_ACCESS_ATTEMPT_BLOCKED",
-        ">> CODE_RED_STANDBY_PROTOCOL_INITIATED"
-    ];
+const COFIX={core:{1:[8.3,2.5],3:[2.3,12.7]},dome:{3:[2,18]},stab:{2:[1.9,4.5]},reslab:{2:[15.75,4]},medbay:{3:[9,12.35]},harmony:{0:[3.25,7.6]},quarters:{0:[2.3,1.7],1:[9.6,1.9],2:[19.05,2.1],3:[12.5,6]}};
+for(const k in COFIX)for(const i in COFIX[k]){PLANS[k].co[i][0]=COFIX[k][i][0];PLANS[k].co[i][1]=COFIX[k][i][1];}
+/* ═════ FACILITY ═════ */
+const NS='http://www.w3.org/2000/svg';
+const LEVELS=[{id:'SKY',n:'부유섬',y:48},{id:'L3',n:'지휘층',y:170},{id:'L2',n:'거주층',y:270},{id:'L1',n:'생활·의료층',y:370},{id:'B1',n:'안정화 구역',y:500},{id:'B2',n:'지하 격리층',y:600}];
+const LV=Object.fromEntries(LEVELS.map(l=>[l.id,l]));
+const ROOMS={
+  sky:{code:'SK-01',lvl:'SKY',name:'하늘정원',en:'Sky Garden',r:[370,48,260,62],lore:'loc_sky',mission:'B',status:'SERENE',clear:'A',cap:'—',access:'비행 능력 필요',ev:'WIND ANOMALY'},
+  core:{code:'L3-01',lvl:'L3',name:'센트럴 코어',en:'Central Core',r:[320,170,360,90],lore:'loc_aegis',mission:'R',status:'ONLINE',clear:'Ω',cap:'48 OPR',access:'뱅가드 이상 · 관제 요원',ev:'COMMAND UPLINK'},
+  quarters:{code:'L2-01',lvl:'L2',name:'개인실 구역',en:'Quarters',r:[180,270,640,90],lore:'loc_medical',mission:'H',status:'RESIDENTIAL',clear:'D',cap:'~420',access:'등급별 차등 배정',ev:'MOTION'},
+  medbay:{code:'L1-01',lvl:'L1',name:'의무실',en:'Med Bay',r:[180,370,190,90],lore:'loc_medical',mission:'C',status:'OPERATIONAL',clear:'C',cap:'12 BEDS',access:'전 요원',ev:'VITALS ALERT'},
+  harmony:{code:'L1-02',lvl:'L1',name:'하모니 상담실',en:'Harmony Room',r:[380,370,200,90],lore:'loc_harmony',mission:'H',status:'IN SESSION',clear:'C',cap:'2~3',access:'하모니 호출 시',ev:'SESSION LOG'},
+  lounge:{code:'L1-03',lvl:'L1',name:'라운지',en:'Lounge',r:[590,370,230,90],lore:'loc_lounge',mission:'H',status:'OPEN',clear:'D',cap:'~40',access:'전 요원',ev:'MOTION'},
+  stab:{code:'B1-01',lvl:'B1',name:'비상 안정화실',en:'STAB',r:[180,500,300,90],lore:'loc_stab',mission:'K',danger:true,status:'CONTAINMENT',clear:'S',cap:'1 + 1',access:'하모니 긴급 명령 · R.S.T.',ev:'WAVE SPIKE'},
+  reslab:{code:'B1-02',lvl:'B1',name:'공명연구실',en:'Resonance Lab',r:[490,500,330,90],lore:'loc_lounge',mission:'S',status:'MEASURING',clear:'A',cap:'2 + 4 STAFF',access:'하모니 연구 인가',ev:'RESONANCE READ'},
+  dome:{code:'B2-01',lvl:'B2',name:'특별통제 훈련장',en:'Training Dome',r:[180,600,640,140],lore:'loc_dome',mission:'S',status:'STANDBY',clear:'B',cap:'2~12 OPR',access:'하모니 승인 필요',ev:'TERRAIN SHIFT'}
+};
+const ROOM_ORDER=['sky','core','quarters','medbay','harmony','lounge','stab','reslab','dome'];
 
-    // --- 커서 애니메이션 ---
-    const cursor = document.getElementById('cursor');
-    document.addEventListener('mousemove', (e) => {
-        cursor.style.left = e.clientX + 'px';
-        cursor.style.top = e.clientY + 'px';
-    });
-    document.addEventListener('mousedown', () => cursor.classList.add('click-anim'));
-    document.addEventListener('mouseup', () => cursor.classList.remove('click-anim'));
+/* ═════ UTIL ═════ */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const now=()=>new Date().toLocaleTimeString('en-GB');
+let toastT;
+function toast(m){const e=$('toast');e.innerHTML=`<img src="「ARCH」 Symbol Logo Black Ver.png" alt="" onerror="this.remove()"><span>${esc(m)}</span>`;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),2400);}
+const GL='ABCDEFGHJKLMNPRSTUVXYZ0123456789#%+/<>';
+function decode(el,text,dur=650){
+  const ch=[...text],t0=performance.now();cancelAnimationFrame(el._r);
+  const f=t=>{const p=Math.min(1,(t-t0)/dur),n=Math.floor(p*ch.length);let o=ch.slice(0,n).join('');
+    for(let i=n;i<ch.length;i++)o+=/\s/.test(ch[i])?ch[i]:GL[Math.random()*GL.length|0];
+    el.textContent=o;if(p<1)el._r=requestAnimationFrame(f);else el.textContent=text;};
+  el._r=requestAnimationFrame(f);
+}
+const cur=$('cursor'),curDot=$('cur-dot');
+const CS={mx:-100,my:-100,x:-100,y:-100,w:24,h:24,el:null};
+const LOCKSEL='.brand,button,.li,.cell,.co,.kps li,.ai,input,select,[data-l]';
+document.addEventListener('mousemove',e=>{CS.mx=e.clientX;CS.my=e.clientY;curDot.style.transform=`translate(${e.clientX}px,${e.clientY}px)`;
+  const el=e.target.closest(LOCKSEL);CS.el=el&&el.getBoundingClientRect().width<720?el:null;
+});
+document.addEventListener('mousedown',()=>{cur.classList.add('down');});
+document.addEventListener('mouseup',()=>cur.classList.remove('down'));
+function tickCursor(){
+  let tx,ty,tw,th;
+  if(CS.mx>0){const top=document.elementFromPoint(CS.mx,CS.my),el=top&&top.closest(LOCKSEL);CS.el=el&&el.getBoundingClientRect().width<720?el:null;}
+  if(CS.el&&document.contains(CS.el)){const r=CS.el.getBoundingClientRect(),p=6;tx=r.left-p;ty=r.top-p;tw=r.width+p*2;th=r.height+p*2;}
+  else{tw=th=cur.classList.contains('down')?16:24;tx=CS.mx-tw/2;ty=CS.my-th/2;}
+  const k=CS.el?.24:.3;CS.x+=(tx-CS.x)*k;CS.y+=(ty-CS.y)*k;CS.w+=(tw-CS.w)*k;CS.h+=(th-CS.h)*k;
+  cur.style.transform=`translate(${CS.x}px,${CS.y}px)`;cur.style.width=CS.w+'px';cur.style.height=CS.h+'px';
+  cur.classList.toggle('lock',!!CS.el);
+}
 
-    // --- 부팅 시스템 (로그 타이핑 연출 / idea 6) ---
-    const bootLogs = [
-        { txt: "> MOUNTING AEGIS CORE ............ ", tail: "OK", cls: "ok" },
-        { txt: "> NEURAL LINK HANDSHAKE ......... ", tail: "OK", cls: "ok" },
-        { txt: "> HARMONY DB SYNC .............. ", tail: "OK", cls: "ok" },
-        { txt: "> RADAR ARRAY CALIBRATION ...... ", tail: "OK", cls: "ok" },
-        { txt: "> ENCRYPTION LAYER ............. ", tail: "ACTIVE", cls: "ok" },
-        { txt: "> THREAT ASSESSMENT ............ ", tail: "CRITICAL", cls: "crit" },
-        { txt: "> ALL SYSTEMS NOMINAL. WELCOME, OPERATOR.", tail: "", cls: "ok" }
-    ];
+/* ═════ BOOT ═════ */
+let booted=false;const bootT=[];
+function bootStep(c,ms){bootT.push(setTimeout(()=>$('boot').classList.add(c),ms));}
+function runBoot(){
+  const tk=$('bticks');let s='';for(let i=0;i<72;i++){const a=i/72*Math.PI*2,r1=i%6?100:96,r2=104;s+=`<line class="tk" style="transition-delay:${(i*12)}ms" x1="${110+Math.cos(a)*r1}" y1="${110+Math.sin(a)*r1}" x2="${110+Math.cos(a)*r2}" y2="${110+Math.sin(a)*r2}"/>`;}tk.innerHTML=s;
+  bootStep('s1',120);bootStep('s2',520);bootStep('s3',1050);
+  bootT.push(setTimeout(()=>{$('boot').classList.add('s4');decode($('bword'),'ARCH',700);},1500));
+  bootT.push(setTimeout(()=>{$('boot').classList.add('s5');
+    const L=[['AEGIS CORE','ONLINE'],['HARMONY DB','SYNCED'],['SECTOR GRID','09/09'],['THREAT','CRITICAL']];
+    L.forEach((l,i)=>bootT.push(setTimeout(()=>{$('blog').innerHTML+=`${l[0].padEnd(16,'.')} <b>${l[1]}</b>\n`;},i*230)));},1850));
+  bootT.push(setTimeout(finishBoot,3300));
+}
+function skipBoot(){if(booted)return;bootT.forEach(clearTimeout);const b=$('boot');b.classList.add('s1','s2','s3','s4','s5');$('bword').textContent='ARCH';finishBoot();}
+function finishBoot(){
+  if(booted)return;booted=true;const b=$('boot');
+  b.classList.add('out');
+  setTimeout(()=>{b.classList.add('split');document.body.classList.add('ready');introSection();},380);
+  setTimeout(()=>{b.style.display='none';toast('ARCH DATABASE ONLINE');},1450);
+}
 
-    function runBootSequence() {
-        const logEl = document.getElementById('boot-log');
-        let line = 0;
-        const caret = '<span class="boot-caret">▊</span>';
+/* ═════ PLANS ═════ */
+function scorchPath(cx,cy,r){let d='';for(let k=0;k<12;k++){const a=k/12*Math.PI*2,rr=r*(k%2?.42:1)*(.75+.25*Math.sin(k*3.7+cx*1.3));d+=(k?'L':'M')+(cx+Math.cos(a)*rr).toFixed(2)+' '+(cy+Math.sin(a)*rr).toFixed(2)+' ';}return d+'Z';}
+function planBody(id,det){
+  const P=PLANS[id];let g='',k=0;
+  const D=()=>det?` pathLength="1" style="animation-delay:${Math.min(700,(k++)*14)}ms"`:'';
+  const cls=c=>det?`${c} dr`:c;
+  const L=l=>det&&l?` data-l="${esc(l)}"`:'';
+  for(const e of P.els){const [t,...a]=e;
+    if(t==='wall')g+=`<line class="${cls('pw')}"${D()} x1="${a[0]}" y1="${a[1]}" x2="${a[2]}" y2="${a[3]}"/>`;
+    else if(t==='glass')g+=`<line class="pg" x1="${a[0]}" y1="${a[1]}" x2="${a[2]}" y2="${a[3]}"/>`;
+    else if(t==='line')g+=`<line class="p-${a[4]||'f'}" x1="${a[0]}" y1="${a[1]}" x2="${a[2]}" y2="${a[3]}"/>`;
+    else if(t==='rect'){const [x,y,w,h,l,s]=a;g+=`<rect class="${cls('p-'+(s||'f'))}"${D()}${L(l)} x="${x}" y="${y}" width="${w}" height="${h}"/>`;}
+    else if(t==='circ'){const [cx,cy,r,l,s]=a;g+=`<circle class="${cls(s==='w'?'pw':'p-'+(s||'f'))}"${(s==='z'||s==='zd')?'':D()}${L(l)} cx="${cx}" cy="${cy}" r="${r}"/>`;}
+    else if(t==='ring'){const [cx,cy,R,n,r,s]=a;for(let i=0;i<n;i++){const an=i/n*Math.PI*2-Math.PI/2;g+=`<circle class="p-${s||'f'}" cx="${(cx+Math.cos(an)*R).toFixed(2)}" cy="${(cy+Math.sin(an)*R).toFixed(2)}" r="${r}"/>`;}}
+    else if(t==='poly')g+=`<polygon class="${cls(a[1]||'pw')}"${D()} points="${a[0].map(p=>p.join(',')).join(' ')}"/>`;
+    else if(t==='zone'){const [x,y,w,h,l]=a;g+=`<rect class="p-z" x="${x}" y="${y}" width="${w}" height="${h}"/>`;if(l&&det)g+=`<text class="pzl" x="${x+.2}" y="${y+.45}">${esc(l)}</text>`;}
+    else if(t==='path')g+=`<path class="p-${a[1]||'z'}" d="${a[0]}"/>`;
+    else if(t==='x'){const [x,y,w,h]=a;g+=`<path class="p-f" d="M${x} ${y}L${x+w} ${y+h}M${x+w} ${y}L${x} ${y+h}"/>`;}
+    else if(t==='scorch')g+=`<path class="p-sc"${det?' data-l="그을음 흔적"':''} d="${scorchPath(a[0],a[1],a[2])}"/>`;
+    else if(t==='door'){const [x,y,w,o]=a;
+      if(o==='h')g+=`<line class="p-erase" x1="${x}" y1="${y}" x2="${x+w}" y2="${y}"/><path class="p-door" d="M${x} ${y}L${x} ${y+w}A${w} ${w} 0 0 0 ${x+w} ${y}"/>`;
+      else g+=`<line class="p-erase" x1="${x}" y1="${y}" x2="${x}" y2="${y+w}"/><path class="p-door" d="M${x} ${y}L${x+w} ${y}A${w} ${w} 0 0 1 ${x} ${y+w}"/>`;}
+    /* 'txt' labels intentionally omitted: names appear on hover */
+  }
+  if(!P.noOuter)g+=`<rect class="${cls('pw')}"${D()} x="0" y="0" width="${P.w}" height="${P.h}"/>`;
+  return g;
+}
+const PHATCH=`<pattern id="phatch" width=".36" height=".36" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2=".36" stroke="rgba(255,255,255,.3)" stroke-width=".04"/></pattern>`;
+function planSVG(id){
+  const P=PLANS[id],W=P.w,H=P.h;
+  const dims=`<g class="fi"><line class="pdim" x1="0" y1="-1" x2="${W}" y2="-1"/><line class="pdim" x1="0" y1="-1.25" x2="0" y2="-.75"/><line class="pdim" x1="${W}" y1="-1.25" x2="${W}" y2="-.75"/><text class="pdt" x="${W/2}" y="-1.25">${(W*.8).toFixed(1)} M</text>
+   <line class="pdim" x1="-1" y1="0" x2="-1" y2="${H}"/><line class="pdim" x1="-1.25" y1="0" x2="-.75" y2="0"/><line class="pdim" x1="-1.25" y1="${H}" x2="-.75" y2="${H}"/><text class="pdt" x="-1.25" y="${H/2}" transform="rotate(-90 -1.25 ${H/2})">${(H*.8).toFixed(1)} M</text>
+   <g transform="translate(${W+1.1} -1.05)"><path d="M0 -.5L.26 .3L0 .16L-.26 .3Z" fill="#fff"/><text class="pdt" y=".95">N</text></g></g>`;
+  const co=P.co.map((c,i)=>`<g class="co" data-i="${i}" transform="translate(${c[0]} ${c[1]})"><rect x="-.9" y="-.9" width="1.8" height="1.8" fill="transparent"/><g class="ci" style="animation-delay:${900+i*90}ms"><rect class="r" x="-.28" y="-.28" width=".56" height=".56"/><rect class="b" x="-.28" y="-.28" width=".56" height=".56"/><text y=".105">${i+1}</text></g></g>`).join('');
+  return `<svg viewBox="-2.2 -2.2 ${W+4.4} ${H+4.4}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" class="drawing"><defs>${PHATCH}</defs>${planBody(id,true)}${dims}${co}</svg>`;
+}
 
-        function nextLine() {
-            if (line >= bootLogs.length) {
-                // 로그 완료 → 부트 스크린 페이드아웃
-                setTimeout(() => {
-                    const boot = document.getElementById('boot-screen');
-                    boot.style.opacity = '0';
-                    setTimeout(() => { boot.style.display = 'none'; }, 500);
-                    showNotification("ARCH_DATABASE_BW_LOADED");
-                }, 450);
-                return;
-            }
-            const item = bootLogs[line];
-            const tailHtml = item.tail ? `<span class="${item.cls}">${item.tail}</span>` : '';
-            logEl.innerHTML = logEl.innerHTML.replace(caret, '')
-                + item.txt + tailHtml + '\n' + caret;
-            logEl.scrollTop = logEl.scrollHeight;
-            line++;
-            setTimeout(nextLine, 230);
-        }
-        setTimeout(nextLine, 400);
-    }
+/* ═════ SECTION ═════ */
+function textW(s,px){let w=0;for(const c of s)w+=c===' '?px*.3:(/[가-힣]/.test(c)?px:px*.6);return w;}
+let SVG=null;
+const MQ=matchMedia('(max-width:900px)');
+let LAYOUT=MQ.matches?'m':'d';
+const MOB_R={sky:[90,22,220,56],core:[60,130,324,78],quarters:[60,222,324,78],medbay:[60,314,324,78],harmony:[60,400,324,78],lounge:[60,486,324,78],stab:[60,604,324,78],reslab:[60,690,324,78],dome:[60,776,324,112]};
+const RR=id=>LAYOUT==='m'?MOB_R[id]:ROOMS[id].r;
+function envDesktop(DL){
+  let s=`<rect class="fi" x="20" y="482" width="960" height="316" fill="url(#water)"/><rect class="fi" x="20" y="482" width="960" height="316" fill="url(#deep)"/>`;
+  s+=`<line class="dr" ${DL()} x1="20" y1="482" x2="980" y2="482" stroke="rgba(255,255,255,.55)" stroke-dasharray="8 6"/>`;
+  s+=`<g class="fi"><text class="s-t" x="980" y="474" text-anchor="end">SEA LEVEL ±0.0</text><text class="s-t" x="980" y="498" text-anchor="end">SUBMERGED</text></g>`;
+  s+=`<path class="s-ln dr"${DL()} stroke-width="1.2" d="M170 262 H310 V160 H690 V262 H830 V752 L760 792 H240 L170 752 Z"/>`;
+  s+=`<path class="s-ln fi" stroke-opacity=".16" d="M170 266 H830 M170 366 H830 M170 494 H830 M170 596 H830"/>`;
+  s+=`<g class="fi"><path class="s-ln" stroke-opacity=".6" d="M500 160 V142 M490 148 H510"/><path class="s-ln" stroke-opacity=".22" stroke-dasharray="2 5" d="M405 118 L365 160 M595 118 L635 160"/><text class="s-t" x="652" y="146">ANTI-GRAV · ALT +38M</text></g>`;
+  LEVELS.forEach(L=>{const y=L.id==='SKY'?76:L.y+30;
+    s+=`<g class="fi"><text class="s-lv" x="40" y="${y}">${L.id}</text><text class="s-lvk" x="40" y="${y+18}">${esc(L.n)}</text>${L.id!=='SKY'?`<line x1="100" y1="${y-4}" x2="134" y2="${y-4}" stroke="rgba(255,255,255,.2)" stroke-dasharray="2 3"/>`:''}</g>`;});
+  [[262,'+13M'],[368,'+7M'],[482,'0'],[594,'−7M'],[752,'−16M']].forEach(([y,t])=>{s+=`<g class="fi"><line x1="838" y1="${y}" x2="848" y2="${y}" stroke="rgba(255,255,255,.35)"/><text class="s-t" x="854" y="${y+3}">${t}</text></g>`;});
+  s+=`<g class="fi"><line x1="150" y1="164" x2="150" y2="748" stroke="rgba(255,255,255,.18)"/><text class="s-t" x="150" y="158" text-anchor="middle">LIFT</text></g>`;
+  return s;
+}
+function envMobile(DL){
+  let s=`<rect class="fi" x="0" y="588" width="400" height="352" fill="url(#water)"/><rect class="fi" x="0" y="588" width="400" height="352" fill="url(#deep)"/>`;
+  s+=`<line class="dr" ${DL()} x1="0" y1="588" x2="400" y2="588" stroke="rgba(255,255,255,.55)" stroke-dasharray="8 6"/>`;
+  s+=`<g class="fi"><text class="s-t" x="392" y="582" text-anchor="end">SEA LEVEL ±0.0</text></g>`;
+  s+=`<path class="s-ln dr"${DL()} stroke-width="1.2" d="M52 120 H392 V898 L356 928 H88 L52 898 Z"/>`;
+  s+=`<g class="fi"><path class="s-ln" stroke-opacity=".6" d="M222 120 V104 M213 110 H231"/><path class="s-ln" stroke-opacity=".22" stroke-dasharray="2 5" d="M130 80 L100 120 M270 80 L300 120"/></g>`;
+  [['SKY',46],['L3',150],['L2',242],['L1',334],['B1',624],['B2',796]].forEach(([id,y])=>{
+    s+=`<g class="fi"><text class="s-lv" x="6" y="${y}">${id}</text>${id!=='SKY'?`<line x1="6" y1="${y+8}" x2="28" y2="${y+8}" stroke="rgba(255,255,255,.2)"/>`:''}</g>`;});
+  s+=`<g class="fi"><line x1="42" y1="124" x2="42" y2="894" stroke="rgba(255,255,255,.18)"/></g>`;
+  return s;
+}
+function buildSection(){
+  const old=$('secsvg');if(old)old.remove();walkers.length=0;
+  const M=LAYOUT==='m';
+  LIFT.x=M?38:146;LIFT.stops=M?[['L3',196],['L2',288],['L1',552],['B1',756],['B2',876]]:[['L3',246],['L2',346],['L1',446],['B1',576],['B2',726]];
+  LIFT.y=LIFT.target=LIFT.stops[0][1];
+  let d=0;const DL=()=>` pathLength="1" style="animation-delay:${(d++)*50}ms"`;
+  let s=`<svg id="secsvg" viewBox="${M?'0 0 400 940':'0 0 1000 800'}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs>
+   <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#fff" stroke-width="1"/></pattern>${PHATCH}
+   <pattern id="water" width="28" height="12" patternUnits="userSpaceOnUse"><path d="M0 6 Q7 2 14 6 T28 6" fill="none" stroke="rgba(255,255,255,.1)"/><animateTransform attributeName="patternTransform" type="translate" from="0 0" to="28 0" dur="4s" repeatCount="indefinite"/></pattern>
+   <linearGradient id="deep" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".035"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>`;
+  s+=M?envMobile(DL):envDesktop(DL);
+  ROOM_ORDER.forEach((id,ci)=>{
+    const R=ROOMS[id],[x,y,w,h]=RR(id),P=PLANS[id],dl=260+ci*90,NF=M?16:15;
+    const shape=id==='sky'?`<path class="c-bg dr" pathLength="1" style="animation-delay:${dl}ms" d="M${x} ${y} H${x+w} L${x+w-40} ${y+h} L${x+w/2+20} ${y+h+22} L${x+w/2-20} ${y+h+22} L${x+40} ${y+h} Z"/>`
+      :`<rect class="c-bg dr" pathLength="1" style="animation-delay:${dl}ms" x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+    const hz=R.danger?`<rect class="c-hz" x="${x}" y="${y}" width="${w}" height="${h}"/>`:'';
+    const dome=id==='dome'?`<path class="dr" pathLength="1" style="animation-delay:${dl+200}ms" d="M${x+40} ${y+h} A${w/2-40} ${h-22} 0 0 1 ${x+w-40} ${y+h}" fill="none" stroke="rgba(255,255,255,.3)" stroke-dasharray="4 4"/>`:'';
+    let pv='';
+    if(id!=='sky'){const avail=w-14-Math.max(textW(R.name,NF),textW(R.code,9))-26;
+      if(avail>=60){const pw=Math.min(avail,w*.52);pv=`<svg class="pv" x="${x+w-pw-10}" y="${y+10}" width="${pw}" height="${h-20}" viewBox="-.5 -.5 ${P.w+1} ${P.h+1}" preserveAspectRatio="xMaxYMid meet">${planBody(id,false)}</svg>`;}}
+    const tx=id==='sky'?x+w/2:x+14,anc=id==='sky'?' text-anchor="middle"':'';
+    const br=`<path class="c-br" d="M${x-5} ${y+9} V${y-5} H${x+9} M${x+w-9} ${y-5} H${x+w+5} V${y+9} M${x+w+5} ${y+h-9} V${y+h+5} H${x+w-9} M${x+9} ${y+h+5} H${x-5} V${y+h-9}"/>`;
+    s+=`<g class="cell" data-id="${id}">${shape}${hz}${dome}${pv}${br}
+      <g class="fi" style="animation-delay:${dl+500}ms">
+      <text class="c-code" x="${tx}" y="${y+(id==='sky'?20:22)}"${anc}>${R.code}${R.danger?' · HAZARD':''}</text>
+      <text class="c-name" x="${tx}" y="${y+(id==='sky'?42:44)}"${anc}>${esc(R.name)}</text>
+      ${id==='sky'?'':`<text class="c-st" x="${tx}" y="${y+h-14}">${R.status}</text><text class="c-arr" x="${x+w-22}" y="${y+24}">→</text>`}</g></g>`;
+  });
+  s+=`<g id="fx"></g><g id="walkers"></g><rect id="lift" x="${LIFT.x}" y="${LIFT.y}" width="8" height="12"/></svg>`;
+  $('sec').insertAdjacentHTML('beforeend',s);
+  SVG=$('secsvg');
+  SVG.querySelectorAll('.cell').forEach(c=>{c.addEventListener('click',()=>openRoom(c.dataset.id));const n=c.querySelector('.c-name');c.addEventListener('mouseenter',()=>decode(n,ROOMS[c.dataset.id].name,380));});
+  initWalkers();
+}
+function introSection(){SVG.classList.remove('intro');void SVG.getBoundingClientRect();SVG.classList.add('intro');clearTimeout(introSection.t);introSection.t=setTimeout(()=>SVG.classList.remove('intro'),3200);}
 
-    window.onload = () => {
-        renderLore();
-        runBootSequence();
-    };
+/* walkers & lift */
+const walkers=[];
+function initWalkers(){
+  const g=$('walkers');
+  ROOM_ORDER.forEach(id=>{if(id==='sky')return;const [x,y,w,h]=RR(id);
+    const n={quarters:5,dome:3,core:3,lounge:3,stab:1}[id]||2;
+    for(let i=0;i<n;i++){const c=document.createElementNS(NS,'circle');c.setAttribute('class','walker');c.setAttribute('r','1.6');c.setAttribute('cy',y+h-6);g.appendChild(c);
+      walkers.push({c,x:rnd(x+14,x+w-14),min:x+10,max:x+w-10,v:(Math.random()<.5?-1:1)*rnd(.12,.38),p:0});}});
+}
+const LIFT={x:146,y:246,target:246,wait:90,stops:[['L3',246],['L2',346],['L1',446],['B1',576],['B2',726]]};
+function tickWorld(){
+  for(const w of walkers){
+    if(w.p>0){w.p--;continue;}
+    w.x+=w.v;if(w.x<w.min||w.x>w.max){w.v=-w.v;w.x=Math.max(w.min,Math.min(w.max,w.x));}
+    if(Math.random()<.004)w.p=rnd(40,160)|0;
+    if(Math.random()<.002)w.v=-w.v;
+    w.c.setAttribute('cx',w.x.toFixed(1));
+  }
+  if(LIFT.wait>0)LIFT.wait--;
+  else{const d=LIFT.target-LIFT.y;
+    if(Math.abs(d)<1){LIFT.y=LIFT.target;LIFT.wait=rnd(120,280)|0;
+      const st=LIFT.stops[Math.random()*LIFT.stops.length|0];
+      if(Math.random()<.25){const cur=LIFT.stops.find(s=>s[1]===LIFT.target);if(cur)logEv('LIFT',`LIFT A · ${cur[0]} 도착`);}
+      LIFT.target=st[1];}
+    else LIFT.y+=Math.sign(d)*Math.min(Math.abs(d),1.3);}
+  $('lift').setAttribute('y',LIFT.y.toFixed(1));
+}
 
-    function showNotification(msg) {
-        const notif = document.getElementById('system-notif');
-        notif.innerText = `>> ${msg}`;
-        notif.style.display = 'block';
-        notif.style.animation = 'none';
-        void notif.offsetWidth; 
-        notif.style.animation = 'slideIn 0.3s forwards';
-        setTimeout(() => { notif.style.display = 'none'; }, 3500);
-    }
+/* ═════ EVENTS / SENSORS ═════ */
+function logEv(tag,text){
+  const box=$('evlog'),el=document.createElement('div');el.className='ev';
+  el.innerHTML=`<span class="t">${now()}</span><span class="g">${tag}</span><span class="x">${esc(text)}</span>`;
+  box.appendChild(el);while(box.children.length>3)box.firstChild.remove();
+}
+function sonar(id,strong){
+  const [x,y,w,h]=RR(id),cx=rnd(x+30,x+w-30),cy=rnd(y+24,y+h-18),fx=$('fx'),r=strong?44:28;
+  [0,1].forEach(k=>{const c=document.createElementNS(NS,'circle');c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',r);c.setAttribute('vector-effect','non-scaling-stroke');c.setAttribute('class','sonar'+(k?' s2':''));fx.appendChild(c);setTimeout(()=>c.remove(),2000);});
+  const d=document.createElementNS(NS,'circle');d.setAttribute('cx',cx);d.setAttribute('cy',cy);d.setAttribute('r','2.2');d.setAttribute('class','sonar-d');fx.appendChild(d);setTimeout(()=>d.remove(),1700);
+  pingCell(id,700);
+}
+function pingCell(id,ms){const c=SVG&&SVG.querySelector(`.cell[data-id="${id}"]`);if(!c)return;c.classList.add('ping');clearTimeout(c._p);c._p=setTimeout(()=>c.classList.remove('ping'),ms);}
+function randomEvent(){
+  if(booted&&!document.hidden&&!$('detail').classList.contains('show')){
+    const pool=['quarters','quarters','lounge','lounge','medbay','harmony','core','reslab','stab','dome','sky'];
+    const id=pool[Math.random()*pool.length|0],R=ROOMS[id],strong=id==='stab';
+    sonar(id,strong);addBlip();
+    const extra=R.ev==='MOTION'?` · 신호 ${1+(Math.random()*3|0)}`:R.ev==='WAVE SPIKE'?` · ${(rnd(62,79)).toFixed(1)}%`:'';
+    logEv(R.ev.split(' ')[0],`${R.code} ${R.name}${extra}`);
+  }
+  setTimeout(randomEvent,rnd(3200,6800));
+}
 
-    // --- 화면 캡처 (REC 버튼) ---
-    let isCapturing = false;
-    function captureScreen() {
-        if (isCapturing) return;
-        if (typeof html2canvas === 'undefined') {
-            showNotification("CAPTURE_LIB_NOT_LOADED");
-            return;
-        }
-        isCapturing = true;
+/* scan beam */
+const BEAM={on:false,t0:0,dur:2600,done:new Set()};
+function startBeam(){if(!booted||$('detail').classList.contains('show')){setTimeout(startBeam,4000);return;}BEAM.on=true;BEAM.t0=performance.now();BEAM.done.clear();$('beam').style.opacity=1;}
+function tickBeam(t){
+  if(!BEAM.on)return;const p=(t-BEAM.t0)/BEAM.dur,sec=$('sec'),H=sec.clientHeight,b=$('beam');
+  const y=p*(H+40)-70;b.style.transform=`translateY(${y}px)`;
+  const line=sec.getBoundingClientRect().top+y+70;
+  SVG.querySelectorAll('.cell').forEach(c=>{const id=c.dataset.id;if(BEAM.done.has(id))return;const r=c.getBoundingClientRect();if(line>=r.top&&line<=r.bottom){BEAM.done.add(id);pingCell(id,420);}});
+  if(p>=1){BEAM.on=false;b.style.opacity=0;logEv('SCAN','전 구역 스캔 완료 · 9/9 정상');setTimeout(startBeam,rnd(11000,16000));}
+}
 
-        // 캡처에 담기면 안 되는 UI 요소들은 잠시 숨긴다.
-        const hideEls = [
-            document.getElementById('capture-btn'),
-            document.getElementById('cursor'),
-            document.getElementById('system-notif')
-        ];
-        const prev = hideEls.map(el => el ? el.style.visibility : null);
-        hideEls.forEach(el => { if (el) el.style.visibility = 'hidden'; });
+/* background dot field + crosshair */
+const bg=$('bg'),bgx=bg.getContext('2d'),stage=$('stage');
+let SW=0,SH=0,DPR=1;const M={x:-999,y:-999,in:false,sx:-999,sy:-999};
+function resize(){const r=stage.getBoundingClientRect();DPR=Math.min(2,devicePixelRatio||1);SW=LAYOUT==='m'?innerWidth:r.width;SH=LAYOUT==='m'?innerHeight:r.height;bg.width=SW*DPR;bg.height=SH*DPR;
+  const rc=$('radar');rc.width=104*DPR;rc.height=104*DPR;}
+function drawBg(){if(LAYOUT==='m'&&document.body.dataset.view!=='map')return;
+  M.sx+=(M.x-M.sx)*.18;M.sy+=(M.y-M.sy)*.18;
+  bgx.setTransform(DPR,0,0,DPR,0,0);bgx.clearRect(0,0,SW,SH);
+  const G=26,R=150;
+  for(let y=G/2;y<SH;y+=G)for(let x=G/2;x<SW;x+=G){
+    const dx=x-M.sx,dy=y-M.sy,d=Math.hypot(dx,dy);let a=.07,px=x,py=y,s=1;
+    if(d<R){const k=1-d/R;a+=.5*k*k;px+=dx/(d||1)*k*7;py+=dy/(d||1)*k*7;s=1+k*.6;}
+    bgx.fillStyle=`rgba(255,255,255,${a})`;bgx.fillRect(px-s/2,py-s/2,s,s);
+  }
+}
+stage.addEventListener('mousemove',e=>{
+  const r=stage.getBoundingClientRect();M.x=e.clientX-r.left;M.y=e.clientY-r.top;M.in=true;
+  const free=!$('detail').classList.contains('show')&&!$('lore').classList.contains('open');
+  stage.classList.toggle('track',free);
+  document.querySelector('#xh .h').style.transform=`translateY(${M.y}px)`;document.querySelector('#xh .v').style.transform=`translateX(${M.x}px)`;
+  if(SVG&&free){const ctm=SVG.getScreenCTM();if(ctm){const p=new DOMPoint(e.clientX,e.clientY).matrixTransform(ctm.inverse());
+    $('coords').textContent=`X ${((p.x-500)/20).toFixed(1).padStart(5,' ')} · D ${((482-p.y)*.066).toFixed(1).padStart(5,' ')} M`;}}
+});
+stage.addEventListener('mouseleave',()=>{M.x=M.y=-999;stage.classList.remove('track');$('coords').textContent='X — · D —';});
 
-        html2canvas(document.body, {
-            backgroundColor: '#000000',
-            useCORS: true,
-            logging: false,
-            scale: window.devicePixelRatio || 1
-        }).then(canvas => {
-            const link = document.createElement('a');
-            const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            link.download = `ARCH_CAPTURE_${stamp}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            showNotification("SCREEN_CAPTURE_SAVED");
-        }).catch(err => {
-            console.error('captureScreen failed:', err);
-            showNotification("CAPTURE_FAILED");
-        }).finally(() => {
-            hideEls.forEach((el, i) => { if (el) el.style.visibility = prev[i] || ''; });
-            isCapturing = false;
-        });
-    }
+/* radar */
+const rc=$('radar'),rx=rc.getContext('2d');let RA=0;const blips=[];
+function addBlip(){blips.push({a:rnd(0,Math.PI*2),r:rnd(12,46),life:0,armed:true});if(blips.length>8)blips.shift();}
+function drawRadar(){
+  const S=104,c=S/2;rx.setTransform(DPR,0,0,DPR,0,0);rx.clearRect(0,0,S,S);
+  rx.strokeStyle='rgba(255,255,255,.18)';rx.lineWidth=1;
+  [16,32,50].forEach(r=>{rx.beginPath();rx.arc(c,c,r,0,Math.PI*2);rx.stroke();});
+  rx.beginPath();rx.moveTo(c,2);rx.lineTo(c,S-2);rx.moveTo(2,c);rx.lineTo(S-2,c);rx.strokeStyle='rgba(255,255,255,.08)';rx.stroke();
+  RA=(RA+.028)%(Math.PI*2);
+  for(let k=0;k<22;k++){const a=RA-k*.03;rx.strokeStyle=`rgba(255,255,255,${.5*(1-k/22)})`;rx.beginPath();rx.moveTo(c,c);rx.lineTo(c+Math.cos(a)*50,c+Math.sin(a)*50);rx.stroke();}
+  let live=0;
+  blips.forEach(b=>{let diff=(RA-b.a+Math.PI*4)%(Math.PI*2);if(diff<.05&&b.armed){b.life=1;}
+    if(b.life>0){live++;rx.fillStyle=`rgba(255,255,255,${b.life})`;rx.fillRect(c+Math.cos(b.a)*b.r-1.5,c+Math.sin(b.a)*b.r-1.5,3,3);b.life-=.006;}});
+  if(Math.random()<.004)addBlip();
+  const L=$('radar-l');const txt=`Proximity · ${live} Contact${live===1?'':'s'}`;if(L.textContent!==txt)L.textContent=txt;
+}
 
-    // --- 데이터 렌더링 (분류별) ---
-    function renderLore() {
-        const list = document.getElementById('lore-list');
-        const categories = {
-            "01 요원 및 직급": ["role_sentinel", "role_guide", "rank_identity", "rank_prima", "rank_van", "rank_agt", "rank_aco"],
-            "02 속성 및 평판": ["elem_none", "elem_fire", "elem_water", "elem_grass", "elem_light", "elem_wind", "elem_ice"],
-            "03 시스템 및 규정": ["sys_guide_lv", "sys_sync", "sys_addict", "sys_uniform"],
-            "04 적 및 위협 요소": ["enemy_monster", "enemy_rampage", "enemy_corrupt"],
-            "05 주요 거점 (MAP)": ["loc_aegis", "loc_sky", "loc_dome", "loc_harmony", "loc_stab", "loc_medical", "loc_lounge"],
-            "06 부서 및 특수 조직": ["dept_harmony", "team_rst"]
-        };
+/* main loop */
+function loop(t){tickCursor();drawBg();drawRadar();tickWorld();tickBeam(t);requestAnimationFrame(loop);}
 
-        for (let cat in categories) {
-            let catDiv = document.createElement('div');
-            catDiv.className = 'lore-cat';
-            catDiv.innerText = `[ ${cat} ]`;
-            list.appendChild(catDiv);
-            categories[cat].forEach(key => {
-                let item = document.createElement('div');
-                item.className = 'lore-item';
-                item.innerText = db[key].t;
-                item.onclick = () => showLore(key);
-                list.appendChild(item);
-            });
-        }
-    }
+/* ═════ DETAIL ═════ */
+let curRoom=null;
+function renderDetail(id){
+  curRoom=id;closeReadout();const R=ROOMS[id],P=PLANS[id],L=LV[R.lvl];
+  $('dt-name').textContent=R.name;$('crumb').innerHTML=`<span>AEGIS</span><i></i><span>${R.lvl} ${esc(L.n)}</span><i></i><b>${esc(R.name)}</b>`;
+  $('pg-n').innerHTML=`<b>${String(ROOM_ORDER.indexOf(id)+1).padStart(2,'0')}</b> / ${String(ROOM_ORDER.length).padStart(2,'0')}`;
+  const holder=$('dtsvg');holder.innerHTML=planSVG(id);
+  const svg=holder.querySelector('svg');setTimeout(()=>svg.classList.remove('drawing'),1900);
+  $('dt-stamp-t').innerHTML=`<b>ARCH · AEGIS FACILITY</b><span>${R.code} ${esc(R.en).toUpperCase()}</span><span>SHEET ${String(ROOM_ORDER.indexOf(id)+1).padStart(2,'0')}/${String(ROOM_ORDER.length).padStart(2,'0')} · SCALE 1:100</span>`;
+  const info=$('dt-info');
+  let di=0;const RV=()=>` class="rv" style="transition-delay:${400+(di++)*70}ms"`;
+  info.innerHTML=`<div${RV()}><span class="lbl">${R.code} · ${R.lvl} ${esc(L.n)}</span></div>
+    <div${RV()}><div class="di-t" id="di-t">${esc(R.name)}</div><span class="lbl">${esc(R.en)}</span></div>
+    <div${RV()}><div class="stats"><div><span class="lbl">Clearance</span><b>LEVEL-${R.clear}</b></div><div class="${R.danger?'inv':''}"><span class="lbl">Status</span><b>${R.status}</b></div><div><span class="lbl">Capacity</span><b>${esc(R.cap)}</b></div><div><span class="lbl">Access</span><b>${esc(R.access)}</b></div></div></div>
+    <p${RV()}><span class="desc">${esc(P.desc)}</span></p>
+    <div${RV()}><span class="lbl" style="display:block;margin-top:30px">Key Points · ${P.co.length}</span><ol class="kps">${P.co.map((c,i)=>`<li data-i="${i}"><span>${String(i+1).padStart(2,'0')}</span>${esc(c[2])}<i>→</i></li>`).join('')}</ol></div>
+    <div${RV()}><div class="acts"><button class="btn pri" onclick="missionFromRoom('${id}')">이 구역으로 작전 생성</button><button class="btn" onclick="showLore('${R.lore}')">관련 세계관 파일</button></div></div>`;
+  info.scrollTop=0;
+  if($('detail').classList.contains('show')){info.querySelectorAll('.rv').forEach(e=>{e.style.transitionDelay='0ms';});decode($('di-t'),R.name,500);}
+  holder.querySelectorAll('.co').forEach(g=>{g.addEventListener('click',e=>{e.stopPropagation();openReadout(+g.dataset.i);});});
+  info.querySelectorAll('.kps li').forEach(li=>li.addEventListener('click',()=>openReadout(+li.dataset.i)));
+  holder.querySelectorAll('[data-l]').forEach(el=>{
+    el.addEventListener('mousemove',e=>{const r=$('dtplan').getBoundingClientRect(),t=$('ptip');t.textContent=el.dataset.l;t.style.left=(e.clientX-r.left)+'px';t.style.top=(e.clientY-r.top)+'px';t.classList.add('on');});
+    el.addEventListener('mouseleave',()=>$('ptip').classList.remove('on'));
+    el.addEventListener('click',e=>{e.stopPropagation();const r=$('dtplan').getBoundingClientRect(),t=$('ptip');t.textContent=el.dataset.l;t.style.left=(e.clientX-r.left)+'px';t.style.top=(e.clientY-r.top)+'px';t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),1600);});});
+  holder.onclick=()=>closeReadout();
+}
+function openRoom(id){
+  closeLore();const sec=$('sec'),cell=SVG.querySelector(`.cell[data-id="${id}"]`),det=$('detail');
+  if(!det.classList.contains('show')){
+    const a=cell.getBoundingClientRect(),b=sec.getBoundingClientRect();
+    sec.style.transformOrigin=`${a.left+a.width/2-b.left}px ${a.top+a.height/2-b.top}px`;
+    sec.classList.add('zoom');$('st-bot').style.opacity=0;stage.classList.add('in-detail');stage.classList.remove('track');
+    setTimeout(()=>{renderDetail(id);det.classList.add('show');setTimeout(()=>decode($('di-t'),ROOMS[id].name,600),450);},320);
+  } else renderDetail(id);
+}
+function backToSection(){closeReadout();$('detail').classList.remove('show');stage.classList.remove('in-detail');setTimeout(()=>{$('sec').classList.remove('zoom');$('st-bot').style.opacity=1;},160);curRoom=null;}
+function stepRoom(d){const i=ROOM_ORDER.indexOf(curRoom);renderDetail(ROOM_ORDER[(i+d+ROOM_ORDER.length)%ROOM_ORDER.length]);}
+function missionFromRoom(id){backToSection();setTab('ops');switchMode('mission');$('mType').value=ROOMS[id].mission;generateOOC(id);}
 
-    let typeInterval;
-    function showLore(key) {
-        const ov = document.getElementById('data-overlay');
-        ov.style.display = 'block';
-        document.getElementById('ov-title').innerText = db[key].t;
-        
-        const contentEl = document.getElementById('ov-content');
-        contentEl.textContent = "";
-        clearInterval(typeInterval);
-        
-        // 로어 본문은 순수 텍스트다. innerHTML로 넣으면 <가이딩 규약> 같은
-        // 꺾쇠 표기가 HTML 태그로 오인돼 화면에서 사라지므로 textContent로 출력한다.
-        contentEl.textContent = db[key].c;
-        
-        showNotification(`ACCESSING_FILE: ${key.toUpperCase()}`);
-    }
+/* readout — horizontal unfold from marker */
+function openReadout(i){
+  const P=PLANS[curRoom],c=P.co[i],holder=$('dtsvg'),g=holder.querySelector(`.co[data-i="${i}"]`);if(!g)return;
+  holder.querySelectorAll('.co').forEach(x=>x.classList.toggle('on',x===g));
+  $('dt-info').querySelectorAll('.kps li').forEach(li=>li.classList.toggle('on',+li.dataset.i===i));
+  const ro=$('ro'),pr=$('dtplan').getBoundingClientRect(),r=g.getBoundingClientRect();
+  const mx=r.left+r.width/2-pr.left,my=r.top+r.height/2-pr.top,W=328;
+  const flip=mx+W+20>pr.width;
+  ro.classList.remove('open');ro.classList.toggle('flip',flip&&LAYOUT!=='m');
+  ro.style.left=(flip?mx-W-r.width/2:mx+r.width/2)+'px';
+  ro.style.top=Math.max(8,Math.min(pr.height-200,my))+'px';
+  $('ro-n').textContent=`Point ${String(i+1).padStart(2,'0')} / ${String(P.co.length).padStart(2,'0')}`;
+  $('ro-t').textContent=c[2];$('ro-d').textContent=c[3];
+  void ro.offsetWidth;ro.classList.add('open');
+  setTimeout(()=>decode($('ro-t'),c[2],450),300);
+}
+function closeReadout(){$('ro').classList.remove('open');document.querySelectorAll('#dtsvg .co.on').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.kps li.on').forEach(x=>x.classList.remove('on'));}
+function flagRoom(id,ms){SVG.querySelectorAll('.cell.flag').forEach(c=>c.classList.remove('flag'));const c=SVG.querySelector(`.cell[data-id="${id}"]`);if(!c)return;c.classList.add('flag');clearTimeout(flagRoom.t);flagRoom.t=setTimeout(()=>c.classList.remove('flag'),ms);}
 
-    function closeLore() { document.getElementById('data-overlay').style.display = 'none'; }
+/* ═════ LORE ═════ */
+const LORE_ROOMS={};ROOM_ORDER.forEach(id=>(LORE_ROOMS[ROOMS[id].lore]=LORE_ROOMS[ROOMS[id].lore]||[]).push(id));
+let activeLore=null;const closedCats=new Set();
+function renderLore(q=''){
+  const list=$('lore-list');list.innerHTML='';const qq=q.trim().toLowerCase();let total=0,ci=0;
+  for(const cat in CATS){ci++;
+    const keys=CATS[cat].filter(k=>!qq||db[k].t.toLowerCase().includes(qq)||db[k].c.toLowerCase().includes(qq));
+    if(!keys.length)continue;total+=keys.length;
+    const w=document.createElement('div');w.className='cat'+(closedCats.has(cat)&&!qq?' closed':'');
+    w.innerHTML=`<button class="cat-h"><span class="n">${String(ci).padStart(2,'0')}</span><span class="nm">${esc(cat)}</span><span class="c">${keys.length}</span><span class="ar"></span></button><div class="cat-b"><div></div></div>`;
+    w.firstChild.onclick=()=>{w.classList.toggle('closed');w.classList.contains('closed')?closedCats.add(cat):closedCats.delete(cat);};
+    const b=w.querySelector('.cat-b>div');
+    keys.forEach(k=>{const it=document.createElement('button');it.className='li'+(k===activeLore?' on':'');it.dataset.k=k;
+      it.innerHTML=`<span>${esc(db[k].t)}</span>${LORE_ROOMS[k]?'<span class="rm">MAP</span>':''}`;it.onclick=()=>showLore(k);b.appendChild(it);});
+    list.appendChild(w);}
+  if(!total)list.innerHTML='<div class="empty">일치하는 기록이 없습니다.</div>';
+  $('lore-count').textContent=total;
+}
+function showLore(k){
+  activeLore=k;document.querySelectorAll('.li').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
+  const lo=$('lore'),wasOpen=lo.classList.contains('open');
+  const fill=()=>{
+    $('lo-k').textContent='File · '+k.replace('_','-').toUpperCase();
+    $('lo-t').textContent='';$('lo-body').textContent=db[k].c;
+    const f=$('lo-f');f.innerHTML='';
+    (LORE_ROOMS[k]||[]).forEach(id=>{const b=document.createElement('button');b.className='btn pri';b.textContent=`${ROOMS[id].name} 도면 열기`;b.onclick=()=>{closeLore();if(LAYOUT==='m')setView('map');setTimeout(()=>openRoom(id),350);};f.appendChild(b);});
+    lo.classList.add('open');setTimeout(()=>decode($('lo-t'),db[k].t,600),600);
+  };
+  if(wasOpen){lo.classList.remove('open');setTimeout(fill,420);}else fill();
+  stage.classList.remove('track');
+  if(LORE_ROOMS[k])flagRoom(LORE_ROOMS[k][0],4000);
+}
+function closeLore(){$('lore').classList.remove('open');activeLore=null;document.querySelectorAll('.li.on').forEach(e=>e.classList.remove('on'));}
 
-    // --- 모드 전환 시스템 ---
-    let currentMode = 'mission';
-    function switchMode(mode) {
-        currentMode = mode;
-        document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`.mode-tab[data-mode="${mode}"]`).classList.add('active');
+/* ═════ SIDEBAR ═════ */
+function moveInk(){const b=document.querySelector('.tabs button.on'),t=$('tabs');$('ink').style.left=b.offsetLeft+'px';$('ink').style.width=b.offsetWidth+'px';}
+function setView(v){document.body.dataset.view=v;document.querySelectorAll('#mnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  if(v!=='map'&&curRoom)backToSection();
+  if(v==='db'||v==='ops')setTab(v,true);
+  const el=v==='map'?stage:$('pane-'+v);if(el)el.scrollTop=0;resize();}
+function setTab(t,fromView){if(LAYOUT==='m'&&!fromView&&document.body.dataset.view!==t){setView(t);return;}document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+t));moveInk();if(t==='ops')requestAnimationFrame(moveKnob);}
+function moveKnob(){const b=document.querySelector('#seg button.on');if(!b||!b.offsetWidth)return;$('knob').style.left=b.offsetLeft+'px';$('knob').style.width=b.offsetWidth+'px';}
 
-        const mTypeGrp = document.getElementById('grp-mtype');
-        const btn = document.getElementById('action-btn');
+/* ═════ OPERATIONS ═════ */
+let currentMode='mission',typeTimer=null,lastDocument='',ARCHIVE=[];
+function switchMode(m){
+  currentMode=m;document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));moveKnob();
+  $('form').classList.toggle('hidden',m==='archive');$('grp-mtype').classList.toggle('hidden',m!=='mission');
+  $('action-btn').textContent=m==='mission'?'작전 프로토콜 생성':'페어링 진단 실행';
+  if(m==='archive')renderArchive();
+  else if(lastDocument&&!typeTimer){$('term').textContent=lastDocument;$('acts').classList.add('show');}
+}
+function executeAction(){currentMode==='mission'?generateOOC():generateDiagnosis();}
+function typewrite(text,title){
+  const term=$('term'),footer='\n\n>> END_OF_DOCUMENT. MAY THE ARCH PROTECT YOU.';
+  lastDocument=text+footer;ARCHIVE.unshift({title,text:lastDocument,time:now()});if(ARCHIVE.length>20)ARCHIVE.pop();
+  $('acts').classList.remove('show');term.textContent='';if(typeTimer)clearInterval(typeTimer);
+  let i=0;typeTimer=setInterval(()=>{term.textContent+=text.slice(i,i+3);i+=3;term.scrollTop=term.scrollHeight;
+    if(i>=text.length){clearInterval(typeTimer);typeTimer=null;term.textContent+=footer;term.scrollTop=term.scrollHeight;$('acts').classList.add('show');}},16);
+}
+function renderArchive(){
+  const term=$('term');term.innerHTML='';$('acts').classList.remove('show');
+  if(!ARCHIVE.length){term.textContent='>> ARCHIVE_EMPTY';return;}
+  ARCHIVE.forEach(a=>{const d=document.createElement('div');d.className='ai';d.innerHTML=`<small>${a.time}</small>${esc(a.title)}`;
+    d.onclick=()=>{term.innerHTML='';const b=document.createElement('button');b.className='bk';b.textContent='← ARCHIVE';b.onclick=renderArchive;term.appendChild(b);term.appendChild(document.createTextNode('\n'+a.text));lastDocument=a.text;$('acts').classList.add('show');};
+    term.appendChild(d);});
+}
+function copyDocument(){if(!lastDocument)return;const done=()=>toast('DOCUMENT COPIED');
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(lastDocument).then(done).catch(()=>fallbackCopy(lastDocument,done));else fallbackCopy(lastDocument,done);}
+function fallbackCopy(t,done){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){toast('COPY FAILED');}ta.remove();}
+function gradeOf(v){return v<50?'F · 배정 불가':v<71?'C · 표준':v<91?'B–A · 엘리트':'S · 전설';}
+function setSync(v){$('sync-fill').style.width=v+'%';$('sync-grade').textContent=gradeOf(v);
+  const el=$('sync-val'),t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/1200),e=1-Math.pow(1-p,3);el.innerHTML=Math.round(v*e)+'<small>%</small>';if(p<1)requestAnimationFrame(f);})(t0);}
 
-        if (mode === 'mission') {
-            mTypeGrp.classList.remove('hidden');
-            btn.innerText = 'GENERATE_PROTOCOL';
-        } else if (mode === 'diagnosis') {
-            mTypeGrp.classList.add('hidden');
-            btn.innerText = 'RUN_DIAGNOSIS';
-        }
-        showNotification(`MODE_SWITCHED: ${mode.toUpperCase()}`);
-    }
+const MISSION_ROOM={A:'core',B:'sky',C:'medbay',S:'dome',K:'stab',H:'harmony',R:'core'};
+const MISSION_NAME={A:'전술 섬멸 작전',B:'구역 탐색 및 정찰',C:'거점 방어 및 구출',S:'공명 정밀 테스트',K:'비상 안정화',H:'하모니 정기 상담',R:'코드 레드'};
+function generateOOC(roomOverride){
+  const s=$('sName').value.trim()||'미상_센티넬',g=$('gName').value.trim()||'미상_가이드',type=$('mType').value;
+  const sync=Math.floor(Math.random()*50+45);setSync(sync);
+  const rid=(typeof roomOverride==='string'&&roomOverride)||MISSION_ROOM[type],R=ROOMS[rid];
+  let doc=`=================================\n[ ARCH CENTRAL COMMAND: TACTICAL PROTOCOL ]\nOPERATION_CODE: ${Math.random().toString(36).slice(2,9).toUpperCase()}\n=================================\n\n`;
+  doc+=`■ 지정 파트너 정보\n- 투입 센티넬: ${s}\n- 전담 가이드: ${g}\n- 현재 측정 싱크로율: ${sync}%\n- 집결 구역: [${R.code}] ${R.name}\n\n`;
+  const M={
+    A:`■ 미션 브리핑: 전술 섬멸 작전\n상황: 제4구역 내 대규모 괴수 군락 발견. 센티넬 ${s}의 파괴 능력을 전면 해제합니다.\n지침: 가이드 ${g}는 현장에 동행하여 속성 버프를 지원하십시오. 교전 중 오염도 상승 시 즉각적인 밀착 가이딩을 시행하십시오.`,
+    B:`■ 미션 브리핑: 구역 탐색 및 정찰\n상황: 구 문명 폐허 지대 미확인 파장 감지.\n지침: 가이드 ${g}는 센티넬 ${s}의 감각 과부하를 최소화하기 위해 백업에 집중하십시오. 적대 세력 조우 시 생포를 우선으로 합니다.`,
+    C:`■ 미션 브리핑: 거점 방어 및 구출\n상황: 아이기스 외곽 방어선 기습 타격 발생.\n지침: 센티넬 ${s}는 즉각 방어선을 구축하여 접근을 차단하십시오. 가이드 ${g}는 버프를 통해 전선을 유지해야 합니다.`,
+    S:`■ 미션 브리핑: 공명 정밀 테스트\n상황: 하모니 부서 주관 파장 동기화 검사.\n지침: 특별통제 훈련장으로 이동하십시오. 실전과 동일한 환경에서 심층 동기화 가이딩을 시행하며 데이터를 산출합니다.`,
+    K:`■ 미션 브리핑: [CODE BLACK] 비상 안정화 (STAB)\n상황: 센티넬 ${s} 오염도 80% 돌파. 폭주 임박.\n지침: 강제 격리 프로토콜 가동. 가이드 ${g}는 격리실로 진입하여 심층 공명 가이딩을 강제 실시하십시오.`,
+    H:`■ 미션 브리핑: 하모니 정기 상담\n상황: 센티넬 ${s}의 파장 불안정 감지.\n지침: 하모니 심리상담실로 출석하십시오. 외부 임무는 중단되며, 파트너 간 파장 충돌 해소를 위한 멘탈 케어 세션이 진행됩니다.`,
+    R:`■ 미션 브리핑: [CODE RED] 긴급 출동\n상황: ARCH 전체 긴급 사이렌 발령. 정체불명 위협 접근.\n지침: 브리핑 생략. ${s}, ${g} 요원은 즉시 무장 후 최전선으로 출동하십시오.`};
+  typewrite(doc+(M[type]||M.A),`${MISSION_NAME[type]} · ${s} / ${g}`);
+  flagRoom(rid,12000);sonar(rid,type==='K'||type==='R');if(type==='R')triggerAlert('CODE RED');else if(type==='K')triggerAlert('CODE BLACK');logEv('ORDER',`${MISSION_NAME[type]} → ${R.code} ${R.name}`);toast('MISSION PROTOCOL GENERATED');
+}
+function generateDiagnosis(){
+  const s=$('sName').value.trim()||'미상_센티넬',g=$('gName').value.trim()||'미상_가이드';
+  const sync=Math.min(99,Math.max(35,Math.floor(Math.random()*65+35)));setSync(sync);
+  let grade,note;
+  if(sync<50){grade='F / 배정 불가';note='정신 파장 불일치. 페어링 시 양측 모두 위험. 즉시 재배정 권장.';}
+  else if(sync<71){grade='C / 표준 조합';note='기본 임무 수행 가능 수준. 단기 페어링에 한해 운용.';}
+  else if(sync<91){grade='B-A / 엘리트 조합';note='고난도 임무 투입 승인. 장기 페어링 시 시너지 극대화 예상.';}
+  else{grade='S / 전설적 조합';note='전설적 수치 감지. 각인 발현이 임박하며, 강제 분리 시 양측 정신 붕괴 위험.';}
+  const imprint=sync>=91?'발현 임박 (영구 각인)':sync>=81?'조짐 감지':sync>=65?'낮음':'미확인';
+  const addict=Math.floor(Math.random()*80+15),warn=addict>70?'고위험 / 격리 필요':addict>45?'주의 / 모니터링':'안정 범주';
+  const recs=['정기 가이딩 주 3회 이상, 라운지 우선 사용권 부여.','고압 임무 투입 가능. 단, 임무 후 24시간 안정화 의무.','공명연구실 정기 측정 일정 편성. 데이터 누적 관찰 요망.','감정 파장 모니터링 필수. 별거 시 즉시 보고 의무.','심층 가이딩 세션 권장. 트라우마 발현 시 하모니 즉시 개입.','장기 동행 임무 가능. 파장 충돌 발생 시 격리 후 재조정.','분리 임무 금지 권고. 동선 일치율 90% 이상 유지 요망.'];
+  let t=`=================================\n[ HARMONY DIVISION: PAIRING DIAGNOSTIC ]\nDIAGNOSTIC_NO: HD-${Math.random().toString(36).slice(2,9).toUpperCase()}\n=================================\n\n`;
+  t+=`■ 진단 대상\n- 센티넬: ${s}\n- 가이드: ${g}\n- 측정 장소: [B1-02] 공명연구실\n\n■ 측정 결과\n- 싱크로율: ${sync}%\n- 평가 등급: ${grade}\n- 각인 가능성: ${imprint}\n- 가이딩 중독 위험도: ${addict}% [${warn}]\n\n■ 등급 해석\n${note}\n\n■ 하모니 권고사항\n${recs[Math.floor(Math.random()*recs.length)]}`;
+  typewrite(t,`페어링 진단 · ${s} / ${g} · ${sync}%`);flagRoom('reslab',12000);sonar('reslab');logEv('DIAG',`B1-02 공명연구실 · 싱크로 ${sync}%`);toast('PAIRING DIAGNOSTIC COMPLETE');
+}
 
-    function executeAction() {
-        if (currentMode === 'mission') generateOOC();
-        else if (currentMode === 'diagnosis') generateDiagnosis();
-    }
+function snd(){}
+/* ═════ ALERT ═════ */
+function triggerAlert(label){
+  document.body.classList.add('alert');$('al-t').textContent=label;clearTimeout(triggerAlert.t);
+  logEv('ALERT',label+' · 전 요원 비상 대기');
+  triggerAlert.t=setTimeout(()=>document.body.classList.remove('alert'),5200);
+}
 
-    // --- 공용 터미널 출력 (타이핑 애니메이션) ---
-    let oocInterval = null;
-    let lastDocument = "";           // 복사/저장용 마지막 생성 문서 (idea 2)
-    function typewriteToTerminal(text) {
-        const terminal = document.getElementById('ooc-terminal');
-        const footer = `\n\n>> END_OF_DOCUMENT. MAY THE ARCH PROTECT YOU.`;
-        lastDocument = text + footer;
-        document.getElementById('doc-actions').classList.remove('show'); // 타이핑 중 숨김
-        terminal.innerText = "";
-        if (oocInterval) clearInterval(oocInterval);
-        let i = 0;
-        oocInterval = setInterval(() => {
-            terminal.innerText += text[i]; i++;
-            terminal.scrollTop = terminal.scrollHeight;
-            if (i >= text.length) {
-                clearInterval(oocInterval);
-                oocInterval = null;
-                terminal.innerText += footer;
-                document.getElementById('doc-actions').classList.add('show'); // 완료 후 노출
-            }
-        }, 15);
-    }
+/* ═════ KEYS / HOME ═════ */
+function toggleKeys(){$('keys').classList.toggle('open');}
+function goHome(){
+  const wasRoom=!!curRoom;closeReadout();closeLore();$('keys').classList.remove('open');
+  if(wasRoom)backToSection();if(LAYOUT==='m')setView('map');stage.scrollTop=0;
+  setTimeout(introSection,wasRoom?550:0);toast('RETURN TO COMMAND');
+}
+/* ═════ CAPTURE ═════ */
+let isCapturing=false;
+function captureScreen(){if(isCapturing)return;if(typeof html2canvas==='undefined'){toast('CAPTURE UNAVAILABLE');return;}isCapturing=true;
+  const hide=[$('cursor'),$('cur-dot'),$('toast')],prev=hide.map(e=>e.style.visibility);hide.forEach(e=>e.style.visibility='hidden');
+  html2canvas(document.body,{backgroundColor:'#000',useCORS:true,logging:false,scale:devicePixelRatio||1}).then(c=>{const a=document.createElement('a');a.download=`ARCH_CAPTURE_${new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)}.png`;a.href=c.toDataURL('image/png');a.click();toast('CAPTURE SAVED');})
+  .catch(e=>{console.error(e);toast('CAPTURE FAILED');}).finally(()=>{hide.forEach((e,i)=>e.style.visibility=prev[i]||'');isCapturing=false;});}
 
-    // --- 생성 문서 복사 / 저장 (idea 2) ---
-    function copyDocument() {
-        if (!lastDocument) { showNotification("NO_DOCUMENT_TO_COPY"); return; }
-        const done = () => showNotification("DOCUMENT_COPIED_TO_CLIPBOARD");
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(lastDocument).then(done).catch(() => fallbackCopy(lastDocument, done));
-        } else {
-            fallbackCopy(lastDocument, done);
-        }
-    }
-
-    function fallbackCopy(txt, done) {
-        const ta = document.createElement('textarea');
-        ta.value = txt;
-        ta.style.position = 'fixed'; ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand('copy'); done(); }
-        catch (e) { showNotification("COPY_FAILED"); }
-        ta.remove();
-    }
-
-    // --- 페어링 호환성 진단 생성기 ---
-    function generateDiagnosis() {
-        const s = document.getElementById('sName').value || "미상_센티넬";
-        const g = document.getElementById('gName').value || "미상_가이드";
-
-        // 싱크로율 산정
-        const sync = Math.min(99, Math.max(35, Math.floor(Math.random() * 65 + 35)));
-
-        document.getElementById('sync-fill').style.width = sync + "%";
-        document.getElementById('sync-val').innerText = `${sync}%`;
-
-        // 등급 분류
-        let grade, gradeNote;
-        if (sync < 50) { grade = "F / 배정 불가"; gradeNote = "정신 파장 불일치. 페어링 시 양측 모두 위험. 즉시 재배정 권장."; }
-        else if (sync < 71) { grade = "C / 표준 조합"; gradeNote = "기본 임무 수행 가능 수준. 단기 페어링에 한해 운용."; }
-        else if (sync < 91) { grade = "B-A / 엘리트 조합"; gradeNote = "고난도 임무 투입 승인. 장기 페어링 시 시너지 극대화 예상."; }
-        else { grade = "S / 전설적 조합"; gradeNote = "전설적 수치 감지. 각인 발현이 임박하며, 강제 분리 시 양측 정신 붕괴 위험."; }
-
-        const imprint = sync >= 91 ? "🚨 발현 임박 (영구 각인)" : sync >= 81 ? "조짐 감지" : sync >= 65 ? "낮음" : "미확인";
-        const addict = Math.floor(Math.random() * 80 + 15);
-        const addictWarn = addict > 70 ? "⚠️ 고위험 / 격리 필요" : addict > 45 ? "주의 / 모니터링" : "안정 범주";
-
-        // 권고사항 풀
-        const recs = [
-            "정기 가이딩 주 3회 이상, 라운지 우선 사용권 부여.",
-            "고압 임무 투입 가능. 단, 임무 후 24시간 안정화 의무.",
-            "공명연구실 정기 측정 일정 편성. 데이터 누적 관찰 요망.",
-            "감정 파장 모니터링 필수. 별거 시 즉시 보고 의무.",
-            "심층 가이딩 세션 권장. 트라우마 발현 시 하모니 즉시 개입.",
-            "장기 동행 임무 가능. 파장 충돌 발생 시 격리 후 재조정.",
-            "분리 임무 금지 권고. 동선 일치율 90% 이상 유지 요망."
-        ];
-        const rec = recs[Math.floor(Math.random() * recs.length)];
-
-        // 진단서 출력
-        let docText = `=================================\n`;
-        docText += `[ HARMONY DIVISION: PAIRING DIAGNOSTIC ]\n`;
-        docText += `DIAGNOSTIC_NO: HD-${Math.random().toString(36).slice(2,9).toUpperCase()}\n`;
-        docText += `=================================\n\n`;
-        docText += `▶ 진단 대상\n`;
-        docText += `- 센티넬: ${s}\n`;
-        docText += `- 가이드: ${g}\n\n`;
-        docText += `▶ 측정 결과\n`;
-        docText += `- 싱크로율: ${sync}%\n`;
-        docText += `- 평가 등급: ${grade}\n`;
-        docText += `- 각인 가능성: ${imprint}\n`;
-        docText += `- 가이딩 중독 위험도: ${addict}% [${addictWarn}]\n\n`;
-        docText += `▶ 등급 해석\n${gradeNote}\n\n`;
-        docText += `▶ 하모니 권고사항\n${rec}`;
-
-        typewriteToTerminal(docText);
-        showNotification("PAIRING_DIAGNOSTIC_COMPLETE");
-    }
-
-    // --- OOC 생성기 ---
-    function generateOOC() {
-        const s = document.getElementById('sName').value || "미상_센티넬";
-        const g = document.getElementById('gName').value || "미상_가이드";
-        const type = document.getElementById('mType').value;
-        const sync = Math.floor(Math.random() * 50 + 45); 
-        
-        document.getElementById('sync-fill').style.width = sync + "%";
-        document.getElementById('sync-val').innerText = `${sync}%`;
-
-        let doc = `=================================\n`;
-        doc += `[ ARCH CENTRAL COMMAND: TACTICAL PROTOCOL ]\n`;
-        doc += `OPERATION_CODE: ${Math.random().toString(36).slice(2,9).toUpperCase()}\n`;
-        doc += `=================================\n\n`;
-        doc += `▶ 지정 파트너 정보\n`;
-        doc += `- 투입 센티넬: ${s}\n`;
-        doc += `- 전담 가이드: ${g}\n`;
-        doc += `- 현재 측정 싱크로율: ${sync}%\n\n`;
-
-        const missions = {
-            A: `▶ 미션 브리핑: 전술 섬멸 작전\n상황: 제4구역 내 대규모 괴수 군락 발견. 센티넬 ${s}의 파괴 능력을 전면 해제합니다.\n지침: 가이드 ${g}는 현장에 동행하여 속성 버프를 지원하십시오. 교전 중 오염도 상승 시 즉각적인 밀착 가이딩을 시행하십시오.`,
-            B: `▶ 미션 브리핑: 구역 탐색 및 정찰\n상황: 구 문명 폐허 지대 미확인 파장 감지.\n지침: 가이드 ${g}는 센티넬 ${s}의 감각 과부하를 최소화하기 위해 백업에 집중하십시오. 적대 세력 조우 시 생포를 우선으로 합니다.`,
-            C: `▶ 미션 브리핑: 거점 방어 및 구출\n상황: 아이기스 외곽 방어선 기습 타격 발생.\n지침: 센티넬 ${s}는 즉각 방어선을 구축하여 접근을 차단하십시오. 가이드 ${g}는 버프를 통해 전선을 유지해야 합니다.`,
-            S: `▶ 미션 브리핑: 공명 정밀 테스트\n상황: 하모니 부서 주관 파장 동기화 검사.\n지침: 특별통제 훈련장으로 이동하십시오. 실전과 동일한 환경에서 심층 동기화 가이딩을 시행하며 데이터를 산출합니다.`,
-            K: `▶ 미션 브리핑: 🚨 비상 안정화 (STAB)\n상황: 센티넬 ${s} 오염도 80% 돌파. 폭주 임박.\n지침: 강제 격리 프로토콜 가동. 가이드 ${g}는 격리실로 진입하여 심층 공명 가이딩을 강제 실시하십시오.`,
-            H: `▶ 미션 브리핑: 하모니 정기 상담\n상황: 센티넬 ${s}의 파장 불안정 감지.\n지침: 하모니 심리상담실로 출석하십시오. 외부 임무는 중단되며, 파트너 간 파장 충돌 해소를 위한 멘탈 케어 세션이 진행됩니다.`,
-            R: `▶ 미션 브리핑: 🚨 CODE RED (긴급 출동)\n상황: ARCH 전체 긴급 사이렌 발령. 정체불명 위협 접근.\n지침: 브리핑 생략. ${s}, ${g} 요원은 즉시 무장 후 최전선으로 출동하십시오.`
-        };
-
-        let text = doc + (missions[type] || missions.A);
-        typewriteToTerminal(text);
-
-        showNotification("MISSION_PROTOCOL_GENERATED");
-    }
-
-    // --- 실시간 타이머 및 수치 변동 ---
-    setInterval(() => {
-        const now = new Date();
-        document.getElementById('clock').innerText = now.toLocaleTimeString('en-GB');
-    }, 1000);
-
-    setInterval(() => {
-        const baseAgents = 420;
-        const fluct = Math.floor(Math.random() * 10) - 5;
-        document.getElementById('agent-count').innerText = baseAgents + fluct;
-    }, 4000);
-
-    setInterval(() => {
-        if(Math.random() < 0.4) {
-            const log = sysLogs[Math.floor(Math.random() * sysLogs.length)];
-            const term = document.getElementById('ooc-terminal');
-            if(!term.innerText.includes("END_OF_DOCUMENT")) return; 
-            term.innerText += `\n${log}`;
-            term.scrollTop = term.scrollHeight;
-        }
-    }, 5000);
-
+/* ═════ TICKERS / KEYS ═════ */
+const sysLogs=['>> SCANNING_GLOBAL_THREAT_LEVEL...','>> NEURAL_LINK_STABLE','>> WARNING: MINOR_WAVE_FLUCTUATION_DETECTED','>> HARMONY_DEPT_DATA_SYNC_COMPLETE','>> ALERT: UNAUTHORIZED_ACCESS_ATTEMPT_BLOCKED','>> CODE_RED_STANDBY_PROTOCOL_INITIATED'];
+setInterval(()=>{$('clock').textContent=now();},1000);
+setInterval(()=>{$('agent-count').textContent=420+Math.floor(Math.random()*10)-5;},4000);
+setInterval(()=>{if(Math.random()>.4||currentMode==='archive'||typeTimer)return;const t=$('term');if(!t.textContent.includes('END_OF_DOCUMENT'))return;t.textContent+='\n'+sysLogs[Math.floor(Math.random()*sysLogs.length)];t.scrollTop=t.scrollHeight;},5000);
+document.addEventListener('keydown',e=>{
+  const typing=/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
+  if(e.key==='Escape'){if($('keys').classList.contains('open'))toggleKeys();else if($('ro').classList.contains('open'))closeReadout();else if($('lore').classList.contains('open'))closeLore();else if(curRoom)backToSection();if(typing)document.activeElement.blur();}
+  else if(e.key==='/'&&!typing){e.preventDefault();setTab('db');$('lore-q').focus();}
+  else if(!typing&&(e.key==='?'))toggleKeys();
+  else if(!typing&&(e.key==='h'||e.key==='H'))goHome();
+  else if(curRoom&&!typing&&e.key==='ArrowRight')stepRoom(1);
+  else if(curRoom&&!typing&&e.key==='ArrowLeft')stepRoom(-1);
+});
+$('lore-q').addEventListener('input',e=>renderLore(e.target.value));
+window.addEventListener('resize',()=>{resize();moveInk();moveKnob();});
+MQ.addEventListener('change',()=>{LAYOUT=MQ.matches?'m':'d';if(curRoom)backToSection();buildSection();resize();if(LAYOUT==='d')document.body.dataset.view='map';});
+function glitchLoop(){if(booted&&!document.hidden&&!curRoom){const s=$('sec');s.classList.add('glitch');setTimeout(()=>s.classList.remove('glitch'),220);}setTimeout(glitchLoop,rnd(12000,26000));}
+window.addEventListener('load',()=>{
+  setTimeout(glitchLoop,15000);
+  document.body.dataset.view='map';renderLore();buildSection();resize();moveInk();runBoot();requestAnimationFrame(loop);
+  setTimeout(randomEvent,5200);setTimeout(startBeam,7000);
+  $('clock').textContent=now();
+});
 </script>
 </body>
 </html>
