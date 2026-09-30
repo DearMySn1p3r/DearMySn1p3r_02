@@ -300,6 +300,13 @@ body.alert .chip{animation:blink .3s steps(2) infinite}
 .lo-f{display:flex;flex-wrap:wrap;gap:8px;padding:18px 26px 24px}
 .lo-f .btn{width:auto;flex:1;min-width:200px}
 
+/* capture mode: everything at rest */
+body.capture *,body.capture *::before,body.capture *::after{animation:none!important;transition:none!important}
+body.capture .co .mk{opacity:1!important}
+body.capture .fi{opacity:1!important}
+#flash{position:fixed;inset:0;background:#fff;pointer-events:none;z-index:60000;opacity:0}
+#flash.go{animation:flash .5s ease-out}
+@keyframes flash{0%{opacity:.55}100%{opacity:0}}
 /* ── sidebar ── */
 #codebox .sync-v{flex-direction:column;align-items:flex-start;gap:8px}
 #code-val{font:200 28px var(--sans);letter-spacing:.08em;line-height:1.1;white-space:nowrap;transition:opacity .3s}
@@ -557,7 +564,7 @@ body.ready .st-top{transition:opacity 1s .4s}
   <div class="b-skip lbl">Click to skip</div>
 </div>
 
-<div id="toast"></div>
+<div id="toast"></div><div id="flash"></div>
 
 <header>
   <div class="brand" onclick="goHome()" title="메인 화면">
@@ -1019,7 +1026,7 @@ function initWalkers(){
   ROOM_ORDER.forEach(id=>{if(id==='sky')return;const [x,y,w,h]=RR(id);
     const n={quarters:5,dome:3,core:3,lounge:3,stab:1}[id]||2;
     for(let i=0;i<n;i++){const c=document.createElementNS(NS,'circle');c.setAttribute('class','walker');c.setAttribute('r','1.6');c.setAttribute('cy',y+h-6);g.appendChild(c);
-      walkers.push({c,x:rnd(x+14,x+w-14),min:x+10,max:x+w-10,v:(Math.random()<.5?-1:1)*rnd(.12,.38),p:0});}});
+      walkers.push({c,base:x+w*(i+1)/(n+1),x:rnd(x+14,x+w-14),min:x+10,max:x+w-10,v:(Math.random()<.5?-1:1)*rnd(.12,.38),p:0});}});
 }
 const LIFT={x:146,y:246,target:246,wait:90,stops:[['L3',246],['L2',346],['L1',446],['B1',576],['B2',726]]};
 function tickWorld(){
@@ -1118,7 +1125,8 @@ function drawRadar(){
 }
 
 /* main loop */
-function loop(t){tickCursor();drawBg();drawRadar();tickWorld();tickBeam(t);requestAnimationFrame(loop);}
+let CAPTURE=false;
+function loop(t){if(!CAPTURE){tickCursor();drawBg();drawRadar();tickWorld();tickBeam(t);}requestAnimationFrame(loop);}
 
 /* ═════ DETAIL ═════ */
 let curRoom=null;
@@ -1320,10 +1328,37 @@ function goHome(){
 }
 /* ═════ CAPTURE ═════ */
 let isCapturing=false;
-function captureScreen(){if(isCapturing)return;if(typeof html2canvas==='undefined'){toast('CAPTURE UNAVAILABLE');return;}isCapturing=true;
-  const hide=[$('cursor'),$('cur-dot'),$('toast')],prev=hide.map(e=>e.style.visibility);hide.forEach(e=>e.style.visibility='hidden');
-  html2canvas(document.body,{backgroundColor:'#000',useCORS:true,logging:false,scale:devicePixelRatio||1}).then(c=>{const a=document.createElement('a');a.download=`ARCH_CAPTURE_${new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)}.png`;a.href=c.toDataURL('image/png');a.click();toast('CAPTURE SAVED');})
-  .catch(e=>{console.error(e);toast('CAPTURE FAILED');}).finally(()=>{hide.forEach((e,i)=>e.style.visibility=prev[i]||'');isCapturing=false;});}
+function captureScreen(){
+  if(isCapturing)return;if(typeof html2canvas==='undefined'){toast('CAPTURE UNAVAILABLE');return;}
+  isCapturing=true;CAPTURE=true;
+  /* reset everything that moves to a clean resting state */
+  SVG.querySelectorAll('.cell').forEach(c=>{const n=c.querySelector('.c-name');cancelAnimationFrame(n._r);n.textContent=ROOMS[c.dataset.id].name;});
+  $('fx').innerHTML='';SVG.querySelectorAll('.cell').forEach(c=>c.classList.remove('ping','flag'));
+  SVG.classList.remove('intro');$('sec').classList.remove('glitch');
+  BEAM.on=false;$('beam').style.opacity=0;
+  walkers.forEach(w=>{w.x=w.base;w.p=0;w.c.setAttribute('cx',w.base.toFixed(1));});
+  LIFT.y=LIFT.target=LIFT.stops[0][1];LIFT.wait=180;$('lift').setAttribute('y',LIFT.y);
+  M.x=M.y=M.sx=M.sy=-999;stage.classList.remove('track');
+  const wasCapture=document.body.classList.contains('capture');document.body.classList.add('capture');
+  CAPTURE=false;drawBg();drawRadar();CAPTURE=true;
+  const skip=el=>{const id=el.id;
+    if(['cursor','cur-dot','toast','beam','xh','boot','flash','ptip'].includes(id))return true;
+    if(location.protocol==='file:'&&el.tagName==='IMG')return true;
+    if(id==='lore'&&!el.classList.contains('open'))return true;
+    if(id==='keys'&&!el.classList.contains('open'))return true;
+    if(id==='ro'&&!el.classList.contains('open'))return true;
+    if(id==='detail'&&!el.classList.contains('show'))return true;
+    if(id==='alert'&&!document.body.classList.contains('alert'))return true;
+    return false;};
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    html2canvas(document.body,{backgroundColor:'#000',useCORS:true,logging:false,scale:Math.max(2,devicePixelRatio||1),ignoreElements:skip,
+      onclone:d=>{d.body.classList.add('capture');d.querySelectorAll('input').forEach(i=>{if(!i.value)i.style.color='rgba(255,255,255,.22)';});}})
+    .then(c=>{const a=document.createElement('a');a.download=`ARCH_CAPTURE_${new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)}.png`;a.href=c.toDataURL('image/png');a.click();
+      const f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');toast('CAPTURE SAVED');})
+    .catch(e=>{console.error(e);toast('CAPTURE FAILED');})
+    .finally(()=>{if(!wasCapture)document.body.classList.remove('capture');CAPTURE=false;isCapturing=false;});
+  }));
+}
 
 /* ═════ TICKERS / KEYS ═════ */
 const sysLogs=['>> SCANNING_GLOBAL_THREAT_LEVEL...','>> NEURAL_LINK_STABLE','>> WARNING: MINOR_WAVE_FLUCTUATION_DETECTED','>> HARMONY_DEPT_DATA_SYNC_COMPLETE','>> ALERT: UNAUTHORIZED_ACCESS_ATTEMPT_BLOCKED','>> CODE_RED_STANDBY_PROTOCOL_INITIATED'];
