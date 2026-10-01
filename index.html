@@ -457,7 +457,9 @@ body.ready .st-top{transition:opacity 1s .4s}
   .opt-k{display:none!important}
   .tbtn{margin-left:4px}
   #clock{font-size:12px}
-  .tbtn{padding:6px 9px}
+  .tbtn{height:26px;line-height:24px;padding:0 10px}
+  .tbtn:has(i){padding-left:24px}
+  .tbtn i{left:10px}
   #main{display:block;position:relative;flex:1;min-height:0}
   #stage,#side{position:absolute;inset:0;border:none!important}
   body[data-view="map"] #side,body:not([data-view="map"]) #stage{display:none}
